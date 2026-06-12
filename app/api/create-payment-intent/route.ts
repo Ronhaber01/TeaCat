@@ -2,21 +2,18 @@ import { NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { createClient } from '@/lib/supabase-server'
 
-function getStripe() {
-  return new Stripe(process.env.STRIPE_SECRET_KEY!, { apiVersion: '2024-04-10' })
-}
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+  apiVersion: '2024-04-10',
+})
 
 export async function POST(req: Request) {
   try {
-    if (!process.env.STRIPE_SECRET_KEY) {
-      return NextResponse.json({ error: 'Payments not configured yet' }, { status: 503 })
-    }
-
     const { eventId, tier = 'general' } = await req.json()
     if (!eventId) return NextResponse.json({ error: 'eventId required' }, { status: 400 })
 
     const supabase = createClient()
     const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return NextResponse.json({ error: 'Not authenticated' }, { status: 401 })
 
     const { data: event, error } = await supabase
       .from('events')
@@ -29,7 +26,7 @@ export async function POST(req: Request) {
     if (event.ticket_capacity !== null && event.tickets_sold >= event.ticket_capacity) return NextResponse.json({ error: 'Sold out' }, { status: 400 })
     if (event.is_free || event.price_min === 0) return NextResponse.json({ error: 'Use free ticket flow' }, { status: 400 })
 
-    const paymentIntent = await getStripe().paymentIntents.create({
+    const paymentIntent = await stripe.paymentIntents.create({
       amount: event.price_min,
       currency: 'usd',
       automatic_payment_methods: { enabled: true },
@@ -37,7 +34,7 @@ export async function POST(req: Request) {
         eventId: event.id,
         eventTitle: event.title,
         tier,
-        userId: user?.id ?? '',
+        userId: user.id,
       },
     })
 
