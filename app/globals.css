@@ -1,0 +1,66 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --purple: #7B2EFF;
+  --neon: #A3FF12;
+  --bg: #111111;
+  --surface: #1A1A1A;
+  --border: #2A2A2A;
+}
+
+* {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html, body {
+  max-width: 430px;
+  margin: 0 auto;
+  background-color: #111111;
+  color: #ffffff;
+  font-family: 'Inter', sans-serif;
+  overscroll-behavior: none;
+}
+
+/* Hide scrollbar but keep scroll */
+::-webkit-scrollbar { display: none; }
+* { -ms-overflow-style: none; scrollbar-width: none; }
+
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 16px);
+}
+
+@layer utilities {
+  .text-neon { color: #A3FF12; }
+  .text-purple { color: #7B2EFF; }
+  .bg-surface { background-color: #1A1A1A; }
+  .bg-bg { background-color: #111111; }
+  .border-border { border-color: #2A2A2A; }
+
+  .pill {
+    @apply px-4 py-2 rounded-full text-sm font-semibold whitespace-nowrap transition-all;
+  }
+
+  .pill-active {
+    @apply bg-[#7B2EFF] text-white;
+  }
+
+  .pill-inactive {
+    @apply bg-[#1A1A1A] text-gray-400 border border-[#2A2A2A];
+  }
+
+  .card {
+    @apply bg-[#1A1A1A] rounded-2xl overflow-hidden border border-[#2A2A2A];
+  }
+
+  .btn-primary {
+    @apply bg-[#7B2EFF] text-white font-bold py-4 px-6 rounded-2xl text-base w-full active:scale-95 transition-transform;
+  }
+
+  .btn-secondary {
+    @apply bg-[#1A1A1A] text-white font-semibold py-4 px-6 rounded-2xl text-base w-full border border-[#2A2A2A] active:scale-95 transition-transform;
+  }
+}
