@@ -44,8 +44,8 @@ export default function HomeClient({ events, featured, upcoming, activeCategory 
       <header className="px-5 pt-14 pb-4">
         <div className="flex items-center justify-between mb-1">
           <div>
-            <h1 className="text-2xl font-black text-white">{getGreeting()}</h1>
-            <p className="text-gray-500 text-sm mt-0.5">{getSubGreeting()}</p>
+            <h1 className="text-2xl font-black text-white" suppressHydrationWarning>{getGreeting()}</h1>
+            <p className="text-gray-500 text-sm mt-0.5" suppressHydrationWarning>{getSubGreeting()}</p>
           </div>
           <div className="flex items-center gap-3">
             {/* Notification bell */}
