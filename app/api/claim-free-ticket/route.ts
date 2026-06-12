@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase-server'
+import { sendTicketEmail } from '@/lib/send-ticket-email'
 
 export async function POST(req: Request) {
   try {
@@ -13,7 +14,7 @@ export async function POST(req: Request) {
 
     const { data: event } = await supabase
       .from('events')
-      .select('id, is_free, price_min, ticket_capacity, tickets_sold, is_published, is_cancelled')
+      .select('id, title, is_free, price_min, ticket_capacity, tickets_sold, is_published, is_cancelled, starts_at, venue_name, neighborhood, flyer_url')
       .eq('id', eventId)
       .single()
 
@@ -27,7 +28,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Sold out' }, { status: 400 })
     }
 
-    // Check if user already has a ticket
+    // Check duplicate
     const { data: existing } = await supabase
       .from('tickets')
       .select('id')
@@ -49,15 +50,35 @@ export async function POST(req: Request) {
         currency: 'usd',
         status: 'active',
       })
-      .select()
+      .select('id, ticket_code')
       .single()
 
     if (error) {
       return NextResponse.json({ error: 'Failed to create ticket' }, { status: 500 })
     }
 
-    // Increment tickets_sold on the event
+    // Increment tickets_sold
     await supabase.rpc('increment_tickets_sold', { event_id: eventId })
+
+    // Send confirmation email
+    if (ticket?.ticket_code && user.email) {
+      try {
+        await sendTicketEmail({
+          to: user.email,
+          eventTitle: event.title,
+          startsAt: event.starts_at,
+          venueName: event.venue_name,
+          neighborhood: event.neighborhood,
+          ticketCode: ticket.ticket_code,
+          tier: 'general',
+          pricePaid: 0,
+          flyerUrl: event.flyer_url,
+        })
+      } catch (emailErr) {
+        // Don't fail if email fails — ticket is already created
+        console.error('Email send error:', emailErr)
+      }
+    }
 
     return NextResponse.json({ ticket })
   } catch (err) {
