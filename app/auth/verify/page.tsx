@@ -21,7 +21,6 @@ export default function VerifyPage() {
   }, [])
 
   const handleChange = (index: number, val: string) => {
-    // Allow paste of full 6-digit code
     if (val.length === 6 && /^\d{6}$/.test(val)) {
       const digits = val.split('')
       setCode(digits)
@@ -55,18 +54,37 @@ export default function VerifyPage() {
     setError('')
     const supabase = createClient()
 
-    const { error } = await supabase.auth.verifyOtp({
+    const { error: verifyErr } = await supabase.auth.verifyOtp({
       email,
       token,
       type: 'email',
     })
 
-    setLoading(false)
-    if (error) {
+    if (verifyErr) {
+      setLoading(false)
       setError('Wrong code. Try again.')
       setCode(['', '', '', '', '', ''])
       inputRefs.current[0]?.focus()
       return
+    }
+
+    // Create user profile if this is their first login
+    const { data: { user } } = await supabase.auth.getUser()
+    if (user) {
+      const username = user.email!
+        .split('@')[0]
+        .toLowerCase()
+        .replace(/[^a-z0-9_]/g, '')
+        .slice(0, 20) || 'user'
+
+      await supabase.from('users').upsert(
+        {
+          id: user.id,
+          email: user.email!,
+          username,
+        },
+        { onConflict: 'id', ignoreDuplicates: true }
+      )
     }
 
     router.push(redirect)
@@ -88,12 +106,11 @@ export default function VerifyPage() {
         </svg>
       </Link>
 
-      <h1 className="text-white font-black text-3xl mb-2">Check your email 📬</h1>
+      <h1 className="text-white font-black text-3xl mb-2">Check your email</h1>
       <p className="text-gray-500 text-sm mb-10">
         We sent a 6-digit code to <span className="text-white font-semibold">{email}</span>
       </p>
 
-      {/* 6-digit OTP input */}
       <div className="flex gap-3 justify-between mb-6">
         {code.map((digit, i) => (
           <input
@@ -127,7 +144,7 @@ export default function VerifyPage() {
         disabled={resent}
         className="text-gray-600 text-sm mt-4 active:text-[#7B2EFF] transition-colors disabled:opacity-50"
       >
-        {resent ? '✓ Code resent!' : 'Didn\'t get it? Resend code'}
+        {resent ? 'Code resent!' : "Didn't get it? Resend code"}
       </button>
     </div>
   )
