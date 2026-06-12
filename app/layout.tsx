@@ -2,6 +2,8 @@ import type { Metadata, Viewport } from 'next'
 import './globals.css'
 import { AuthProvider } from '@/components/AuthProvider'
 
+export const dynamic = 'force-dynamic'
+
 export const metadata: Metadata = {
   title: 'TeaCat — NYC Nightlife',
   description: 'Other apps sell tickets. TeaCat finds you tonight.',
