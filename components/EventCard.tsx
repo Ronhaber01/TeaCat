@@ -42,7 +42,7 @@ export default function EventCard({ event, variant = 'grid' }: EventCardProps) {
           <div className="px-3 py-3 flex items-center justify-between">
             <div className="flex items-center gap-2 text-gray-400 text-sm">
               <ClockIcon />
-              <span>{format(startTime, 'EEE, MMM d · h:mm a')}</span>
+              <span suppressHydrationWarning>{format(startTime, 'EEE, MMM d · h:mm a')}</span>
             </div>
             <PriceTag event={event} />
           </div>
@@ -69,7 +69,7 @@ export default function EventCard({ event, variant = 'grid' }: EventCardProps) {
             </div>
             <p className="text-gray-500 text-xs mt-1">{event.venue_name || event.neighborhood}</p>
             <div className="flex items-center justify-between mt-2">
-              <span className="text-gray-400 text-xs">{format(startTime, 'EEE · h:mm a')}</span>
+              <span className="text-gray-400 text-xs" suppressHydrationWarning>{format(startTime, 'EEE · h:mm a')}</span>
               <PriceTag event={event} small />
             </div>
           </div>
@@ -97,7 +97,7 @@ export default function EventCard({ event, variant = 'grid' }: EventCardProps) {
         <div className="px-3 py-2 flex items-center justify-between">
           <div>
             <p className="text-gray-400 text-xs">{event.neighborhood || event.venue_name}</p>
-            <p className="text-gray-500 text-xs">{format(startTime, 'EEE, MMM d · h:mm a')}</p>
+            <p className="text-gray-500 text-xs" suppressHydrationWarning>{format(startTime, 'EEE, MMM d · h:mm a')}</p>
           </div>
           <PriceTag event={event} small />
         </div>
