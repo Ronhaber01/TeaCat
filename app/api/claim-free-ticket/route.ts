@@ -56,6 +56,9 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Failed to create ticket' }, { status: 500 })
     }
 
+    // Increment tickets_sold on the event
+    await supabase.rpc('increment_tickets_sold', { event_id: eventId })
+
     return NextResponse.json({ ticket })
   } catch (err) {
     console.error('Free ticket error:', err)
