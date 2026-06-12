@@ -1,8 +1,6 @@
 import { Resend } from 'resend'
 import { format } from 'date-fns'
 
-const resend = new Resend(process.env.RESEND_API_KEY!)
-
 export async function sendTicketEmail({
   to,
   eventTitle,
@@ -24,6 +22,9 @@ export async function sendTicketEmail({
   pricePaid: number
   flyerUrl?: string | null
 }) {
+  // Lazy init — do NOT instantiate at module level or Next.js build will throw
+  const resend = new Resend(process.env.RESEND_API_KEY!)
+
   const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(`teacat://ticket/${ticketCode}`)}&size=280x280&margin=12&color=111111&bgcolor=ffffff`
   const eventDate = format(new Date(startsAt), "EEEE, MMMM d 'at' h:mm a")
   const priceLabel = pricePaid === 0 ? 'Free' : `$${(pricePaid / 100).toFixed(2)}`
