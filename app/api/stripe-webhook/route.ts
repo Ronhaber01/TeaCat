@@ -3,17 +3,18 @@ import Stripe from 'stripe'
 import { createClient } from '@supabase/supabase-js'
 import { sendTicketEmail } from '@/lib/send-ticket-email'
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2024-04-10',
-})
-
-// Service role — bypasses RLS
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
-
 export async function POST(req: Request) {
+  // Lazy init — do NOT put these at module level or Next.js build will throw
+  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+    apiVersion: '2024-04-10',
+  })
+
+  // Service role — bypasses RLS
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
+
   const body = await req.text()
   const sig = req.headers.get('stripe-signature')!
 
@@ -29,8 +30,7 @@ export async function POST(req: Request) {
     const pi = event.data.object as Stripe.PaymentIntent
     const { eventId, tier, userId } = pi.metadata
 
-    // Insert ticket and get the ticket_code back
-    const { data: ticket, error: ticketErr } = await supabase
+    const { data: ticket, error } = await supabase
       .from('tickets')
       .insert({
         event_id: eventId,
@@ -44,8 +44,8 @@ export async function POST(req: Request) {
       .select('id, ticket_code')
       .single()
 
-    if (ticketErr) {
-      console.error('Ticket insert error:', ticketErr)
+    if (error) {
+      console.error('Ticket insert error:', error)
       return NextResponse.json({ error: 'Failed to create ticket' }, { status: 500 })
     }
 
@@ -55,9 +55,7 @@ export async function POST(req: Request) {
     // Send confirmation email
     if (userId && ticket?.ticket_code) {
       try {
-        // Get user email
         const { data: { user: authUser } } = await supabase.auth.admin.getUserById(userId)
-        // Get event details
         const { data: ev } = await supabase
           .from('events')
           .select('title, starts_at, venue_name, neighborhood, flyer_url')
@@ -78,8 +76,8 @@ export async function POST(req: Request) {
           })
         }
       } catch (emailErr) {
-        // Don't fail the webhook if email fails — ticket is already created
         console.error('Email send error:', emailErr)
+        // Don't fail the webhook for email errors
       }
     }
   }
