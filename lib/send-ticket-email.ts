@@ -22,7 +22,7 @@ export async function sendTicketEmail({
   pricePaid: number
   flyerUrl?: string | null
 }) {
-  // Lazy init — do NOT instantiate at module level or Next.js build will throw
+  // Lazy init — do NOT put this at module level or Next.js build will throw
   const resend = new Resend(process.env.RESEND_API_KEY!)
 
   const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?data=${encodeURIComponent(`teacat://ticket/${ticketCode}`)}&size=280x280&margin=12&color=111111&bgcolor=ffffff`
