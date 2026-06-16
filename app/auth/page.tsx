@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase-browser'
 
@@ -9,9 +9,10 @@ export default function AuthPage() {
   const [email, setEmail] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const router = useRouter()
+  const [sent, setSent] = useState(false)
   const searchParams = useSearchParams()
   const redirect = searchParams.get('redirect') || '/'
+  const callbackError = searchParams.get('error')
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -24,6 +25,7 @@ export default function AuthPage() {
       email: email.trim().toLowerCase(),
       options: {
         shouldCreateUser: true,
+        emailRedirectTo: window.location.origin + '/auth/callback',
       },
     })
 
@@ -33,13 +35,37 @@ export default function AuthPage() {
       return
     }
 
-    // Pass email + redirect to verify page
-    router.push(`/auth/verify?email=${encodeURIComponent(email)}&redirect=${encodeURIComponent(redirect)}`)
+    setSent(true)
+  }
+
+  if (sent) {
+    return (
+      <div className="min-h-screen bg-[#111111] flex flex-col px-5 pt-20 pb-10">
+        <div className="mb-12">
+          <Link href="/" className="flex items-center gap-1">
+            <span className="text-[#7B2EFF] font-black text-4xl tracking-tight">Tea</span>
+            <span className="text-[#A3FF12] font-black text-4xl tracking-tight">Cat</span>
+          </Link>
+        </div>
+        <div className="flex flex-col items-start">
+          <div className="text-5xl mb-6">&#128236;</div>
+          <h1 className="text-white font-black text-3xl mb-3">Check your inbox</h1>
+          <p className="text-gray-400 text-sm mb-2">
+            We sent a sign-in link to <span className="text-white">{email}</span>.
+          </p>
+          <p className="text-gray-500 text-xs mt-4">
+            Didn&apos;t get it? Check spam or{' '}
+            <button onClick={() => setSent(false)} className="text-[#7B2EFF] underline">
+              try again
+            </button>.
+          </p>
+        </div>
+      </div>
+    )
   }
 
   return (
     <div className="min-h-screen bg-[#111111] flex flex-col px-5 pt-20 pb-10">
-      {/* Logo */}
       <div className="mb-12">
         <Link href="/" className="flex items-center gap-1">
           <span className="text-[#7B2EFF] font-black text-4xl tracking-tight">Tea</span>
@@ -48,8 +74,12 @@ export default function AuthPage() {
         <p className="text-gray-500 text-sm mt-2">Other apps sell tickets. TeaCat finds you tonight.</p>
       </div>
 
-      <h1 className="text-white font-black text-3xl mb-2">Let's go 🌃</h1>
-      <p className="text-gray-500 text-sm mb-8">Enter your email and we'll text you a code. No password.</p>
+      <h1 className="text-white font-black text-3xl mb-2">Let&apos;s go &#127749;</h1>
+      <p className="text-gray-500 text-sm mb-8">Enter your email and we&apos;ll send you a sign-in link. No password.</p>
+
+      {callbackError && (
+        <p className="text-red-400 text-sm mb-4 px-1">Sign-in link expired or already used. Try again.</p>
+      )}
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <div>
@@ -74,7 +104,7 @@ export default function AuthPage() {
           disabled={loading || !email.trim()}
           className="btn-primary disabled:opacity-40 disabled:cursor-not-allowed"
         >
-          {loading ? 'Sending code...' : 'Get my code →'}
+          {loading ? 'Sending link...' : 'Get my link &rarr;'}
         </button>
       </form>
 
