@@ -96,6 +96,9 @@ export default async function ManageEventPage({ params }: { params: { id: string
 
         {/* Actions */}
         <div className="flex flex-col gap-3">
+          <Link href={`/host/scan/${e.id}`} className="flex items-center justify-center gap-2 w-full py-4 rounded-2xl bg-[#A3FF12] text-[#111111] font-black text-base active:scale-95 transition-transform">
+            🎟️ Scan tickets at door
+          </Link>
           {!e.boost_active && (
             <Link href={`/host/boost?eventId=${e.id}`} className="btn-primary block text-center">
               🚀 Boost this event ($20 → get $15 back)
