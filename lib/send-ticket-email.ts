@@ -75,7 +75,7 @@ export async function sendTicketEmail({
 </html>`.trim()
 
   await resend.emails.send({
-    from: 'TeaCat <tickets@teacat.app>',
+    from: 'TeaCat <onboarding@resend.dev>',
     to,
     subject: `Your ticket for ${eventTitle} 🎟️`,
     html,
