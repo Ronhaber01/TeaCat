@@ -11,7 +11,7 @@ export default function ScanPage() {
   const { user, loading: authLoading } = useAuth()
   const router = useRouter()
   const params = useParams()
-  const eventId = params.id as string
+  const eventId = params.eventId as string
 
   const [mode, setMode] = useState<'camera' | 'manual'>('camera')
   const [manualCode, setManualCode] = useState('')
