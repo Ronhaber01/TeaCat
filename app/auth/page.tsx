@@ -25,7 +25,6 @@ export default function AuthPage() {
       email: email.trim().toLowerCase(),
       options: {
         shouldCreateUser: true,
-        emailRedirectTo: window.location.origin + '/auth/callback',
       },
     })
 
@@ -104,7 +103,7 @@ export default function AuthPage() {
           disabled={loading || !email.trim()}
           className="btn-primary disabled:opacity-40 disabled:cursor-not-allowed"
         >
-          {loading ? 'Sending link...' : 'Get my link &rarr;'}
+          {loading ? 'Sending link...' : 'Get my link →'}
         </button>
       </form>
 
