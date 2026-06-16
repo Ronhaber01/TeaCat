@@ -3,6 +3,7 @@
 import { useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 import { createClient } from '@/lib/supabase-browser'
 import { useAuth } from '@/components/AuthProvider'
 
@@ -28,9 +29,9 @@ export default function CreateEventPage() {
     price_max: '',
     ticket_capacity: '',
     vibe_tags: [] as string[],
-    is_published: false,
-    flyer_url: '',
   })
+  const [flyerFile, setFlyerFile] = useState<File | null>(null)
+  const [flyerPreview, setFlyerPreview] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [step, setStep] = useState(1)
@@ -44,10 +45,18 @@ export default function CreateEventPage() {
     )
   }
 
+  const handleFlyerChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setFlyerFile(file)
+    setFlyerPreview(URL.createObjectURL(file))
+  }
+
   const handleSubmit = async (publish: boolean) => {
     setLoading(true)
     setError('')
 
+    // Get host_id
     const { data: host } = await supabase
       .from('hosts')
       .select('id')
@@ -55,9 +64,30 @@ export default function CreateEventPage() {
       .single()
 
     if (!host) {
-      setError('No host profile found')
+      setError('No host profile found. Ask an admin to create one for you.')
       setLoading(false)
       return
+    }
+
+    // Upload flyer if provided
+    let flyer_url: string | null = null
+    if (flyerFile) {
+      const ext = flyerFile.name.split('.').pop()
+      const path = `${user!.id}/${Date.now()}.${ext}`
+      const { data: uploadData, error: uploadErr } = await supabase.storage
+        .from('flyers')
+        .upload(path, flyerFile, { upsert: true })
+
+      if (uploadErr) {
+        setError('Flyer upload failed: ' + uploadErr.message)
+        setLoading(false)
+        return
+      }
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('flyers')
+        .getPublicUrl(uploadData.path)
+      flyer_url = publicUrl
     }
 
     const { data: event, error: insertErr } = await supabase
@@ -66,6 +96,7 @@ export default function CreateEventPage() {
         host_id: host.id,
         title: form.title,
         description: form.description || null,
+        flyer_url,
         venue_name: form.venue_name || null,
         address: form.address || null,
         neighborhood: form.neighborhood || null,
@@ -82,7 +113,6 @@ export default function CreateEventPage() {
         is_published: publish,
         is_cancelled: false,
         boost_active: false,
-        flyer_url: form.flyer_url || null,
       })
       .select()
       .single()
@@ -95,6 +125,7 @@ export default function CreateEventPage() {
 
   return (
     <div className="min-h-screen bg-[#111111] pb-10">
+      {/* Header */}
       <div className="px-5 pt-14 pb-4 flex items-center gap-4">
         <Link href="/host" className="w-10 h-10 rounded-full bg-[#1A1A1A] border border-[#2A2A2A] flex items-center justify-center active:scale-90 transition-transform">
           <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="#fff" strokeWidth={2.5}>
@@ -107,6 +138,7 @@ export default function CreateEventPage() {
         </div>
       </div>
 
+      {/* Progress */}
       <div className="px-5 mb-6">
         <div className="flex gap-1">
           {[1, 2, 3].map((s) => (
@@ -117,7 +149,7 @@ export default function CreateEventPage() {
 
       <div className="px-5">
         {step === 1 && (
-          <Step1 form={form} set={set} supabase={supabase} userId={user?.id} onNext={() => setStep(2)} />
+          <Step1 form={form} set={set} onNext={() => setStep(2)} />
         )}
         {step === 2 && (
           <Step2 form={form} set={set} toggleVibe={toggleVibe} onBack={() => setStep(1)} onNext={() => setStep(3)} />
@@ -126,6 +158,8 @@ export default function CreateEventPage() {
           <Step3
             form={form}
             set={set}
+            flyerPreview={flyerPreview}
+            onFlyerChange={handleFlyerChange}
             onBack={() => setStep(2)}
             onSaveDraft={() => handleSubmit(false)}
             onPublish={() => handleSubmit(true)}
@@ -138,81 +172,10 @@ export default function CreateEventPage() {
   )
 }
 
-function Step1({ form, set, supabase, userId, onNext }: any) {
+function Step1({ form, set, onNext }: any) {
   const valid = form.title && form.starts_at
-  const fileInputRef = useRef<HTMLInputElement>(null)
-  const [uploading, setUploading] = useState(false)
-  const [uploadError, setUploadError] = useState('')
-
-  const handleFlyerUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-    setUploading(true)
-    setUploadError('')
-
-    const ext = file.name.split('.').pop()
-    const path = `${userId}/${Date.now()}.${ext}`
-
-    const { error: uploadErr } = await supabase.storage
-      .from('flyers')
-      .upload(path, file, { upsert: true })
-
-    if (uploadErr) {
-      setUploadError(uploadErr.message)
-      setUploading(false)
-      return
-    }
-
-    const { data: { publicUrl } } = supabase.storage.from('flyers').getPublicUrl(path)
-    set('flyer_url', publicUrl)
-    setUploading(false)
-  }
-
   return (
     <div className="flex flex-col gap-5">
-      {/* Flyer Upload */}
-      <div>
-        <label className="text-gray-400 text-xs font-semibold uppercase tracking-wider mb-2 block">Event Flyer</label>
-        <input
-          type="file"
-          ref={fileInputRef}
-          accept="image/jpeg,image/png,image/webp,image/gif"
-          onChange={handleFlyerUpload}
-          className="hidden"
-        />
-        {form.flyer_url ? (
-          <div className="relative rounded-2xl overflow-hidden">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={form.flyer_url} alt="Event flyer" className="w-full h-48 object-cover" />
-            <button
-              type="button"
-              onClick={() => { set('flyer_url', ''); if (fileInputRef.current) fileInputRef.current.value = '' }}
-              className="absolute top-2 right-2 w-8 h-8 rounded-full bg-black/70 flex items-center justify-center text-white text-sm active:scale-90 transition-transform"
-            >
-              ✕
-            </button>
-          </div>
-        ) : (
-          <button
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
-            disabled={uploading}
-            className="w-full h-36 rounded-2xl border-2 border-dashed border-[#2A2A2A] flex flex-col items-center justify-center gap-2 active:border-[#7B2EFF] transition-colors"
-          >
-            {uploading ? (
-              <div className="w-6 h-6 border-2 border-[#7B2EFF] border-t-transparent rounded-full animate-spin" />
-            ) : (
-              <>
-                <span className="text-2xl">🖼️</span>
-                <span className="text-gray-500 text-sm">Tap to upload flyer</span>
-                <span className="text-gray-700 text-xs">JPG, PNG, WebP · max 10MB</span>
-              </>
-            )}
-          </button>
-        )}
-        {uploadError && <p className="text-red-400 text-xs mt-1">{uploadError}</p>}
-      </div>
-
       <div>
         <label className="text-gray-400 text-xs font-semibold uppercase tracking-wider mb-2 block">Event Name *</label>
         <input
@@ -329,9 +292,47 @@ function Step2({ form, set, toggleVibe, onBack, onNext }: any) {
   )
 }
 
-function Step3({ form, set, onBack, onSaveDraft, onPublish, loading, error }: any) {
+function Step3({ form, set, flyerPreview, onFlyerChange, onBack, onSaveDraft, onPublish, loading, error }: any) {
+  const fileInputRef = useRef<HTMLInputElement>(null)
+
   return (
     <div className="flex flex-col gap-5">
+
+      {/* Flyer upload */}
+      <div>
+        <label className="text-gray-400 text-xs font-semibold uppercase tracking-wider mb-2 block">Cover Image</label>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          onChange={onFlyerChange}
+          className="hidden"
+        />
+        {flyerPreview ? (
+          <div className="relative rounded-2xl overflow-hidden h-48 bg-[#1A1A1A] border border-[#2A2A2A]">
+            <Image src={flyerPreview} alt="Flyer preview" fill className="object-cover" unoptimized />
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              className="absolute bottom-3 right-3 bg-black/70 backdrop-blur-sm text-white text-xs font-bold px-3 py-1.5 rounded-full"
+            >
+              Change
+            </button>
+          </div>
+        ) : (
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            className="w-full h-40 bg-[#1A1A1A] border-2 border-dashed border-[#2A2A2A] rounded-2xl flex flex-col items-center justify-center gap-2 text-gray-600 active:border-[#7B2EFF] transition-colors"
+          >
+            <svg width="32" height="32" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
+            </svg>
+            <span className="text-sm font-semibold">Upload flyer or cover image</span>
+            <span className="text-xs">JPG, PNG, WebP</span>
+          </button>
+        )}
+      </div>
+
+      {/* Free toggle */}
       <div className="flex items-center justify-between p-4 rounded-2xl bg-[#1A1A1A] border border-[#2A2A2A]">
         <div>
           <p className="text-white font-semibold text-sm">Free event</p>
@@ -381,11 +382,8 @@ function Step3({ form, set, onBack, onSaveDraft, onPublish, loading, error }: an
         />
       </div>
 
+      {/* Summary */}
       <div className="p-4 rounded-2xl bg-[#1A1A1A] border border-[#2A2A2A]">
-        {form.flyer_url && (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={form.flyer_url} alt="Flyer preview" className="w-full h-32 object-cover rounded-xl mb-3" />
-        )}
         <p className="text-gray-500 text-xs font-semibold uppercase tracking-wider mb-2">Preview</p>
         <p className="text-white font-bold">{form.title || 'Untitled event'}</p>
         <p className="text-gray-400 text-sm">{form.venue_name} · {form.neighborhood}</p>
