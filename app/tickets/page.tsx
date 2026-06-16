@@ -66,7 +66,7 @@ export default function TicketsPage() {
       <div className="min-h-screen bg-[#111111] flex flex-col items-center justify-center px-5 text-center pb-28">
         <div className="text-5xl mb-4">🔒</div>
         <p className="text-white font-bold text-lg">Sign in to see your tickets</p>
-        <Link href="/login" className="btn-primary mt-6 inline-block">Sign in →</Link>
+        <Link href="/auth" className="btn-primary mt-6 inline-block">Sign in →</Link>
         <BottomNav />
       </div>
     )
