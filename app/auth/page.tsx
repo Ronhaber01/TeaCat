@@ -1,20 +1,21 @@
 'use client'
 
 import { useState } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase-browser'
 
 export default function AuthPage() {
   const [email, setEmail] = useState('')
+  const [code, setCode] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const [sent, setSent] = useState(false)
+  const [step, setStep] = useState<'email' | 'code'>('email')
   const searchParams = useSearchParams()
+  const router = useRouter()
   const redirect = searchParams.get('redirect') || '/'
-  const callbackError = searchParams.get('error')
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSendOtp = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!email.trim()) return
     setLoading(true)
@@ -25,11 +26,6 @@ export default function AuthPage() {
       email: email.trim().toLowerCase(),
       options: {
         shouldCreateUser: true,
-        // Must explicitly set emailRedirectTo so Supabase stores the correct
-        // redirect_to in the PKCE flow_state. Without this, Supabase stores the
-        // Site URL (https://tea-cat.vercel.app) as redirect_to, but the code
-        // lands at /auth/callback — causing a PKCE path mismatch and
-        // "expired or already used" on every first-click.
         emailRedirectTo: `${window.location.origin}/auth/callback`,
       },
     })
@@ -40,29 +36,85 @@ export default function AuthPage() {
       return
     }
 
-    setSent(true)
+    setStep('code')
   }
 
-  if (sent) {
+  const handleVerifyCode = async (e: React.FormEvent) => {
+    e.preventDefault()
+    const trimmed = code.trim()
+    if (!trimmed) return
+    setLoading(true)
+    setError('')
+
+    const supabase = createClient()
+    const { error } = await supabase.auth.verifyOtp({
+      email: email.trim().toLowerCase(),
+      token: trimmed,
+      type: 'email',
+    })
+
+    setLoading(false)
+    if (error) {
+      setError('Invalid or expired code. Try again.')
+      return
+    }
+
+    router.push(redirect)
+  }
+
+  const Logo = () => (
+    <div className="mb-12">
+      <Link href="/" className="flex items-center gap-1">
+        <span className="text-[#7B2EFF] font-black text-4xl tracking-tight">Tea</span>
+        <span className="text-[#A3FF12] font-black text-4xl tracking-tight">Cat</span>
+      </Link>
+    </div>
+  )
+
+  if (step === 'code') {
     return (
       <div className="min-h-screen bg-[#111111] flex flex-col px-5 pt-20 pb-10">
-        <div className="mb-12">
-          <Link href="/" className="flex items-center gap-1">
-            <span className="text-[#7B2EFF] font-black text-4xl tracking-tight">Tea</span>
-            <span className="text-[#A3FF12] font-black text-4xl tracking-tight">Cat</span>
-          </Link>
-        </div>
+        <Logo />
         <div className="flex flex-col items-start">
           <div className="text-5xl mb-6">&#128236;</div>
-          <h1 className="text-white font-black text-3xl mb-3">Check your inbox</h1>
-          <p className="text-gray-400 text-sm mb-2">
-            We sent a sign-in link to <span className="text-white">{email}</span>.
+          <h1 className="text-white font-black text-3xl mb-3">Check your email</h1>
+          <p className="text-gray-400 text-sm mb-6">
+            We sent a 6-digit code to <span className="text-white">{email}</span>.
+            Enter it below.
           </p>
-          <p className="text-gray-500 text-xs mt-4">
-            Didn&apos;t get it? Check spam or{' '}
-            <button onClick={() => setSent(false)} className="text-[#7B2EFF] underline">
-              try again
-            </button>.
+
+          <form onSubmit={handleVerifyCode} className="flex flex-col gap-4 w-full">
+            <input
+              type="text"
+              placeholder="123456"
+              value={code}
+              onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+              autoFocus
+              inputMode="numeric"
+              pattern="[0-9]{6}"
+              maxLength={6}
+              className="w-full bg-[#1A1A1A] border border-[#2A2A2A] rounded-2xl px-5 py-4 text-white text-2xl tracking-[0.5em] placeholder-gray-700 focus:outline-none focus:border-[#7B2EFF] transition-colors text-center"
+            />
+
+            {error && <p className="text-red-400 text-sm px-1">{error}</p>}
+
+            <button
+              type="submit"
+              disabled={loading || code.length < 6}
+              className="btn-primary disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              {loading ? 'Verifying...' : 'Sign in →'}
+            </button>
+          </form>
+
+          <p className="text-gray-500 text-xs mt-6">
+            Didn&apos;t get it?{' '}
+            <button
+              onClick={() => { setStep('email'); setCode(''); setError('') }}
+              className="text-[#7B2EFF] underline"
+            >
+              Try again
+            </button>
           </p>
         </div>
       </div>
@@ -71,45 +123,33 @@ export default function AuthPage() {
 
   return (
     <div className="min-h-screen bg-[#111111] flex flex-col px-5 pt-20 pb-10">
-      <div className="mb-12">
-        <Link href="/" className="flex items-center gap-1">
-          <span className="text-[#7B2EFF] font-black text-4xl tracking-tight">Tea</span>
-          <span className="text-[#A3FF12] font-black text-4xl tracking-tight">Cat</span>
-        </Link>
-        <p className="text-gray-500 text-sm mt-2">Other apps sell tickets. TeaCat finds you tonight.</p>
-      </div>
+      <Logo />
 
-      <h1 className="text-white font-black text-3xl mb-2">Let&apos;s go &#127749;</h1>
-      <p className="text-gray-500 text-sm mb-8">Enter your email and we&apos;ll send you a sign-in link. No password.</p>
+      <h1 className="text-white font-black text-3xl mb-2">Let&apos;s go ἵ3</h1>
+      <p className="text-gray-500 text-sm mb-8">
+        Enter your email and we&apos;ll send you a code. No password.
+      </p>
 
-      {callbackError && (
-        <p className="text-red-400 text-sm mb-4 px-1">Sign-in link expired or already used. Try again.</p>
-      )}
+      <form onSubmit={handleSendOtp} className="flex flex-col gap-4">
+        <input
+          type="email"
+          placeholder="your@email.com"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          autoFocus
+          autoComplete="email"
+          inputMode="email"
+          className="w-full bg-[#1A1A1A] border border-[#2A2A2A] rounded-2xl px-5 py-4 text-white text-lg placeholder-gray-700 focus:outline-none focus:border-[#7B2EFF] transition-colors"
+        />
 
-      <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-        <div>
-          <input
-            type="email"
-            placeholder="your@email.com"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            autoFocus
-            autoComplete="email"
-            inputMode="email"
-            className="w-full bg-[#1A1A1A] border border-[#2A2A2A] rounded-2xl px-5 py-4 text-white text-lg placeholder-gray-700 focus:outline-none focus:border-[#7B2EFF] transition-colors"
-          />
-        </div>
-
-        {error && (
-          <p className="text-red-400 text-sm px-1">{error}</p>
-        )}
+        {error && <p className="text-red-400 text-sm px-1">{error}</p>}
 
         <button
           type="submit"
           disabled={loading || !email.trim()}
           className="btn-primary disabled:opacity-40 disabled:cursor-not-allowed"
         >
-          {loading ? 'Sending link...' : 'Get my link →'}
+          {loading ? 'Sending...' : 'Get my code →'}
         </button>
       </form>
 
