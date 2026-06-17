@@ -1,15 +1,19 @@
 import { NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { createClient } from '@/lib/supabase-server'
-import { createClient as createBrowserClient } from '@supabase/supabase-js'
 
 export async function POST(req: Request) {
-  // Lazy init — do NOT put this at module level or Next.js build will throw
-  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-    apiVersion: '2024-04-10',
-  })
-
   try {
+    // Validate Stripe key is present
+    if (!process.env.STRIPE_SECRET_KEY) {
+      console.error('PaymentIntent error: STRIPE_SECRET_KEY is not set')
+      return NextResponse.json({ error: 'Server misconfigured' }, { status: 500 })
+    }
+
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+      apiVersion: '2024-04-10',
+    })
+
     const { eventId, tier = 'general' } = await req.json()
 
     if (!eventId) {
@@ -60,7 +64,8 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ clientSecret: paymentIntent.client_secret })
   } catch (err) {
-    console.error('PaymentIntent error:', err)
-    return NextResponse.json({ error: 'Server error' }, { status: 500 })
+    const message = err instanceof Error ? err.message : String(err)
+    console.error('PaymentIntent error:', message)
+    return NextResponse.json({ error: 'Server error', detail: message }, { status: 500 })
   }
 }
