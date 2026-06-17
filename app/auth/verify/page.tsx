@@ -1,6 +1,6 @@
 'use client'
 import { useState, useRef, useEffect } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase-browser'
 
@@ -11,7 +11,6 @@ export default function VerifyPage() {
   const [error, setError] = useState('')
   const [resent, setResent] = useState(false)
   const inputRefs = useRef<(HTMLInputElement | null)[]>([])
-  const router = useRouter()
   const searchParams = useSearchParams()
   const email = searchParams.get('email') || ''
   const redirect = searchParams.get('redirect') || '/'
@@ -47,9 +46,16 @@ export default function VerifyPage() {
   const verifyCode = async (token: string) => {
     setLoading(true)
     setError('')
-    const supabase = createClient()
-    const { data, error: otpError } = await supabase.auth.verifyOtp({ email, token, type: 'email' })
-    if (otpError) {
+
+    // Verify OTP server-side so the session cookie is written in the same
+    // format that the middleware's createServerClient can read.
+    const resp = await fetch('/api/auth/verify-otp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, token, redirect }),
+    })
+
+    if (!resp.ok) {
       setLoading(false)
       setError('Wrong code. Try again.')
       setCode(Array(CODE_LENGTH).fill(''))
@@ -57,35 +63,9 @@ export default function VerifyPage() {
       return
     }
 
-    // Determine destination
-    let destination = redirect
-    const { data: { user } } = await supabase.auth.getUser()
-    if (user) {
-      const { data: profile } = await supabase
-        .from('users')
-        .select('full_name, phone')
-        .eq('id', user.id)
-        .single()
-      if (!profile?.full_name || !profile?.phone) {
-        destination = `/onboarding?redirect=${encodeURIComponent(redirect)}`
-      }
-    }
-
-    // Persist session server-side so middleware can read it
-    const session = data?.session
-    if (session?.access_token && session?.refresh_token) {
-      await fetch('/api/auth/set-session', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          access_token: session.access_token,
-          refresh_token: session.refresh_token,
-        }),
-      })
-    }
-
-    // Hard navigate so browser sends new cookies with the request
-    window.location.href = destination
+    const data = await resp.json()
+    // Hard-navigate so the browser sends the new session cookies with the request
+    window.location.href = data.redirect
   }
 
   const resend = async () => {
@@ -130,7 +110,7 @@ export default function VerifyPage() {
         </div>
       )}
       <button onClick={resend} disabled={resent} className="text-gray-600 text-sm mt-4 active:text-[#7B2EFF] transition-colors disabled:opacity-50">
-        {resent ? '\u2713 Code resent!' : "Didn't get it? Resend code"}
+        {resent ? '✓ Code resent!' : "Didn't get it? Resend code"}
       </button>
     </div>
   )
