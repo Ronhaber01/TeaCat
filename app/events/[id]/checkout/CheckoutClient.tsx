@@ -20,8 +20,6 @@ export default function CheckoutClient({ event, userId, publishableKey }: Props)
   const [loading, setLoading] = useState(true)
   const isFree = event.is_free || event.price_min === 0
 
-  // Memoize — loadStripe creates a new Stripe.js instance; calling it on every render
-  // causes subtle issues and wastes the network request to load the Stripe.js bundle.
   const stripePromise = useMemo(() => loadStripe(publishableKey), [publishableKey])
 
   useEffect(() => {
@@ -55,7 +53,6 @@ export default function CheckoutClient({ event, userId, publishableKey }: Props)
 
   return (
     <div className="min-h-screen bg-[#111111] pb-10">
-      {/* Header */}
       <div className="px-5 pt-14 pb-6">
         <Link href={`/events/${event.id}`} className="w-10 h-10 rounded-full bg-[#1A1A1A] border border-[#2A2A2A] flex items-center justify-center mb-6 active:scale-90 transition-transform">
           <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="#fff" strokeWidth={2.5}>
@@ -67,7 +64,6 @@ export default function CheckoutClient({ event, userId, publishableKey }: Props)
         <p className="text-gray-500 text-sm">Tap to pay, show QR at the door.</p>
       </div>
 
-      {/* Event summary */}
       <div className="mx-5 mb-6 p-4 rounded-2xl bg-[#1A1A1A] border border-[#2A2A2A]">
         <h2 className="text-white font-bold text-base leading-tight mb-1">{event.title}</h2>
         <p className="text-gray-500 text-sm">{event.venue_name} · {event.neighborhood}</p>
@@ -123,8 +119,7 @@ function StripeForm({ event, userId }: { event: Event; userId: string }) {
     const { error } = await stripe.confirmPayment({
       elements,
       confirmParams: {
-        // Include eventTitle so the success page can show the event name
-        return_url: `${window.location.origin}/checkout/success?eventId=${event.id}&eventTitle=${encodeURIComponent(event.title)}`,
+        return_url: `${window.location.origin}/events/${event.id}/checkout/success`,
       },
     })
 
@@ -180,7 +175,7 @@ function FreeTicketButton({ eventId, eventTitle }: { eventId: string; eventTitle
     const data = await res.json()
     setLoading(false)
     if (data.error) { setError(data.error); return }
-    router.push('/checkout/success?free=1&eventTitle=' + encodeURIComponent(eventTitle))
+    router.push('/tickets')
   }
 
   return (
