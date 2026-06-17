@@ -123,6 +123,7 @@ function StripeForm({ event, userId }: { event: Event; userId: string }) {
     const { error } = await stripe.confirmPayment({
       elements,
       confirmParams: {
+        // Include eventTitle so the success page can show the event name
         return_url: `${window.location.origin}/checkout/success?eventId=${event.id}&eventTitle=${encodeURIComponent(event.title)}`,
       },
     })
