@@ -1,8 +1,8 @@
 'use client'
+
 import { useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import { createClient } from '@/lib/supabase-browser'
 
 export default function AuthPage() {
   const [email, setEmail] = useState('')
@@ -12,31 +12,51 @@ export default function AuthPage() {
   const searchParams = useSearchParams()
   const redirect = searchParams.get('redirect') || '/'
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!email.trim()) return
     setLoading(true)
     setError('')
-    const supabase = createClient()
-    const { error } = await supabase.auth.signInWithOtp({
-      email: email.trim().toLowerCase(),
-      options: { shouldCreateUser: true },
+
+    // POST to server-side route so signInWithOtp runs without PKCE.
+    // PKCE (default in createBrowserClient) makes Supabase send a magic
+    // link instead of an 8-digit OTP code.
+    const resp = await fetch('/api/auth/send-otp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: email.trim().toLowerCase() }),
     })
+
     setLoading(false)
-    if (error) { setError(error.message); return }
-    router.push('/auth/verify?email=' + encodeURIComponent(email.trim().toLowerCase()) + '&redirect=' + encodeURIComponent(redirect))
+    if (!resp.ok) {
+      const data = await resp.json().catch(() => ({}))
+      setError(data.error || 'Failed to send code. Try again.')
+      return
+    }
+
+    router.push(
+      `/auth/verify?email=${encodeURIComponent(email)}&redirect=${encodeURIComponent(redirect)}`
+    )
   }
 
   return (
     <div className="min-h-screen bg-[#111111] flex flex-col px-5 pt-20 pb-10">
+      {/* Logo */}
       <div className="mb-12">
         <Link href="/" className="flex items-center gap-1">
           <span className="text-[#7B2EFF] font-black text-4xl tracking-tight">Tea</span>
           <span className="text-[#A3FF12] font-black text-4xl tracking-tight">Cat</span>
         </Link>
+        <p className="text-gray-500 text-sm mt-2">
+          Other apps sell tickets. TeaCat finds you tonight.
+        </p>
       </div>
-      <h1 className="text-white font-black text-3xl mb-2">Let's go</h1>
-      <p className="text-gray-500 text-sm mb-8">Enter your email and we'll send you a code. No password.</p>
+
+      <h1 className="text-white font-black text-3xl mb-2">Let&apos;s go 🌃</h1>
+      <p className="text-gray-500 text-sm mb-8">
+        Enter your email and we&apos;ll send you a code. No password.
+      </p>
+
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
         <input
           type="email"
@@ -48,16 +68,21 @@ export default function AuthPage() {
           inputMode="email"
           className="w-full bg-[#1A1A1A] border border-[#2A2A2A] rounded-2xl px-5 py-4 text-white text-lg placeholder-gray-700 focus:outline-none focus:border-[#7B2EFF] transition-colors"
         />
+
         {error && <p className="text-red-400 text-sm px-1">{error}</p>}
+
         <button
           type="submit"
           disabled={loading || !email.trim()}
           className="btn-primary disabled:opacity-40 disabled:cursor-not-allowed"
         >
-          {loading ? 'Sending...' : 'Get my code →'}
+          {loading ? 'Sending code...' : 'Get my code →'}
         </button>
       </form>
-      <p className="text-gray-700 text-xs text-center mt-8">By continuing you agree to our terms. No spam, ever.</p>
+
+      <p className="text-gray-700 text-xs text-center mt-8 leading-relaxed">
+        By continuing you agree to our terms. No spam, ever.
+      </p>
     </div>
   )
 }
