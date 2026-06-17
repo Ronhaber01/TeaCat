@@ -88,11 +88,11 @@ export default function AuthPage() {
               type="text"
               placeholder="123456"
               value={code}
-              onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+              onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 8))}
               autoFocus
               inputMode="numeric"
-              pattern="[0-9]{6}"
-              maxLength={6}
+              pattern="[0-9]{6,8}"
+              maxLength={8}
               className="w-full bg-[#1A1A1A] border border-[#2A2A2A] rounded-2xl px-5 py-4 text-white text-2xl tracking-[0.5em] placeholder-gray-700 focus:outline-none focus:border-[#7B2EFF] transition-colors text-center"
             />
 
