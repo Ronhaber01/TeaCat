@@ -25,6 +25,12 @@ export default function AuthPage() {
       email: email.trim().toLowerCase(),
       options: {
         shouldCreateUser: true,
+        // Must explicitly set emailRedirectTo so Supabase stores the correct
+        // redirect_to in the PKCE flow_state. Without this, Supabase stores the
+        // Site URL (https://tea-cat.vercel.app) as redirect_to, but the code
+        // lands at /auth/callback — causing a PKCE path mismatch and
+        // "expired or already used" on every first-click.
+        emailRedirectTo: `${window.location.origin}/auth/callback`,
       },
     })
 
