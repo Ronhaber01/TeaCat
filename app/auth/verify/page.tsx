@@ -10,7 +10,7 @@ export default function VerifyPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [resent, setResent] = useState(false)
-  const inputRefs = useRef<(HTMLInputElement | null)[]>([])
+  const inputRefs = useRef([])
   const router = useRouter()
   const searchParams = useSearchParams()
   const email = searchParams.get('email') || ''
@@ -18,7 +18,7 @@ export default function VerifyPage() {
 
   useEffect(() => { inputRefs.current[0]?.focus() }, [])
 
-  const handleChange = (index: number, val: string) => {
+  const handleChange = (index, val) => {
     if (val.length === CODE_LENGTH && /^\d+$/.test(val)) {
       const digits = val.split('')
       setCode(digits)
@@ -38,23 +38,36 @@ export default function VerifyPage() {
     }
   }
 
-  const handleKeyDown = (index: number, e: React.KeyboardEvent) => {
+  const handleKeyDown = (index, e) => {
     if (e.key === 'Backspace' && !code[index] && index > 0) {
       inputRefs.current[index - 1]?.focus()
     }
   }
 
-  const verifyCode = async (token: string) => {
+  const verifyCode = async (token) => {
     setLoading(true)
     setError('')
     const supabase = createClient()
-    const { error } = await supabase.auth.verifyOtp({ email, token, type: 'email' })
-    setLoading(false)
-    if (error) {
+    const { error: otpError } = await supabase.auth.verifyOtp({ email, token, type: 'email' })
+    if (otpError) {
+      setLoading(false)
       setError('Wrong code. Try again.')
       setCode(Array(CODE_LENGTH).fill(''))
       inputRefs.current[0]?.focus()
       return
+    }
+    // Check if user needs onboarding
+    const { data: { user } } = await supabase.auth.getUser()
+    if (user) {
+      const { data: profile } = await supabase
+        .from('users')
+        .select('full_name, phone')
+        .eq('id', user.id)
+        .single()
+      if (!profile?.full_name || !profile?.phone) {
+        router.push('/onboarding?redirect=' + encodeURIComponent(redirect))
+        return
+      }
     }
     router.push(redirect)
     router.refresh()
@@ -89,7 +102,7 @@ export default function VerifyPage() {
             value={digit}
             onChange={(e) => handleChange(i, e.target.value)}
             onKeyDown={(e) => handleKeyDown(i, e)}
-            className={`w-10 h-12 text-center text-xl font-black rounded-xl border bg-[#1A1A1A] text-white focus:outline-none transition-all ${digit ? 'border-[#7B2EFF]' : 'border-[#2A2A2A]'} ${loading ? 'opacity-50' : ''}`}
+            className={'w-10 h-12 text-center text-xl font-black rounded-xl border bg-[#1A1A1A] text-white focus:outline-none transition-all ' + (digit ? 'border-[#7B2EFF]' : 'border-[#2A2A2A]') + (loading ? ' opacity-50' : '')}
             disabled={loading}
           />
         ))}
@@ -102,7 +115,7 @@ export default function VerifyPage() {
         </div>
       )}
       <button onClick={resend} disabled={resent} className="text-gray-600 text-sm mt-4 active:text-[#7B2EFF] transition-colors disabled:opacity-50">
-        {resent ? '✓ Code resent!' : "Didn't get it? Resend code"}
+        {resent ? 'Code resent!' : "Didn't get it? Resend code"}
       </button>
     </div>
   )
