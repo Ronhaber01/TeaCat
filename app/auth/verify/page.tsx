@@ -2,7 +2,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import { createClient } from '@/lib/supabase-browser'
 
 export default function VerifyPage() {
   const CODE_LENGTH = 8
@@ -47,8 +46,8 @@ export default function VerifyPage() {
     setLoading(true)
     setError('')
 
-    // Verify OTP server-side so the session cookie is written in the same
-    // format that the middleware's createServerClient can read.
+    // Verify OTP server-side so the session cookie is set in a format
+    // the middleware's createServerClient can read.
     const resp = await fetch('/api/auth/verify-otp', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -69,8 +68,12 @@ export default function VerifyPage() {
   }
 
   const resend = async () => {
-    const supabase = createClient()
-    await supabase.auth.signInWithOtp({ email, options: { shouldCreateUser: true } })
+    // Use server-side route to avoid PKCE (same as initial send)
+    await fetch('/api/auth/send-otp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email }),
+    })
     setResent(true)
     setTimeout(() => setResent(false), 5000)
   }
