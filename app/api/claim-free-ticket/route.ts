@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase-server'
-import { sendTicketEmail } from '@/lib/send-ticket-email'
 
 export async function POST(req: Request) {
   try {
@@ -14,7 +13,7 @@ export async function POST(req: Request) {
 
     const { data: event } = await supabase
       .from('events')
-      .select('id, title, is_free, price_min, ticket_capacity, tickets_sold, is_published, is_cancelled, starts_at, venue_name, neighborhood, flyer_url')
+      .select('id, is_free, price_min, ticket_capacity, tickets_sold, is_published, is_cancelled')
       .eq('id', eventId)
       .single()
 
@@ -28,7 +27,6 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Sold out' }, { status: 400 })
     }
 
-    // Check duplicate
     const { data: existing } = await supabase
       .from('tickets')
       .select('id')
@@ -40,45 +38,28 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Already have a ticket' }, { status: 400 })
     }
 
+    const ticketCode = crypto.randomUUID().replace(/-/g, '').substring(0, 12).toLowerCase()
+
     const { data: ticket, error } = await supabase
       .from('tickets')
       .insert({
         event_id: eventId,
         user_id: user.id,
+        ticket_code: ticketCode,
         tier: 'general',
         price_paid: 0,
         currency: 'usd',
         status: 'active',
       })
-      .select('id, ticket_code')
+      .select()
       .single()
 
     if (error) {
+      console.error('Free ticket insert error:', error)
       return NextResponse.json({ error: 'Failed to create ticket' }, { status: 500 })
     }
 
-    // Increment tickets_sold
     await supabase.rpc('increment_tickets_sold', { event_id: eventId })
-
-    // Send confirmation email
-    if (ticket?.ticket_code && user.email) {
-      try {
-        await sendTicketEmail({
-          to: user.email,
-          eventTitle: event.title,
-          startsAt: event.starts_at,
-          venueName: event.venue_name,
-          neighborhood: event.neighborhood,
-          ticketCode: ticket.ticket_code,
-          tier: 'general',
-          pricePaid: 0,
-          flyerUrl: event.flyer_url,
-        })
-      } catch (emailErr) {
-        // Don't fail if email fails — ticket is already created
-        console.error('Email send error:', emailErr)
-      }
-    }
 
     return NextResponse.json({ ticket })
   } catch (err) {
