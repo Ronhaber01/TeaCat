@@ -2,6 +2,10 @@ import { NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { createClient } from '@/lib/supabase-server'
 
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+  apiVersion: '2024-04-10',
+})
+
 export async function POST(req: Request) {
   try {
     const { eventId, tier = 'general' } = await req.json()
@@ -12,7 +16,7 @@ export async function POST(req: Request) {
 
     const supabase = createClient()
 
-    // Get current user — needed to embed userId in payment metadata
+    // Get current user – needed to embed userId in payment metadata
     const { data: { user } } = await supabase.auth.getUser()
 
     // Fetch event from Supabase
@@ -35,16 +39,11 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Use free ticket flow' }, { status: 400 })
     }
 
-    if (!process.env.STRIPE_SECRET_KEY) {
-      return NextResponse.json({ error: 'Server misconfigured' }, { status: 500 })
-    }
-
-    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-      apiVersion: '2024-04-10',
-    })
+    // Amount in cents (price_min stored as cents)
+    const amount = event.price_min
 
     const paymentIntent = await stripe.paymentIntents.create({
-      amount: event.price_min,
+      amount,
       currency: 'usd',
       payment_method_types: ['card'],
       metadata: {
@@ -57,8 +56,7 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ clientSecret: paymentIntent.client_secret })
   } catch (err) {
-    const message = err instanceof Error ? err.message : String(err)
-    console.error('PaymentIntent error:', message)
-    return NextResponse.json({ error: 'Server error', detail: message }, { status: 500 })
+    console.error('PaymentIntent error:', err)
+    return NextResponse.json({ error: 'Server error' }, { status: 500 })
   }
 }
