@@ -2,17 +2,18 @@ import { NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { createClient } from '@supabase/supabase-js'
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2024-04-10',
-})
-
-// Use service role for webhook — bypasses RLS
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
-
 export async function POST(req: Request) {
+  // Lazy-init inside handler — env vars not available at build time
+  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+    apiVersion: '2024-04-10',
+  })
+
+  // Use service role for webhook — bypasses RLS
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  )
+
   const body = await req.text()
   const sig = req.headers.get('stripe-signature')!
 
@@ -33,7 +34,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ received: true })
     }
 
-    // Idempotency check — confirm-ticket (called from success page) may have already created this ticket
+    // Idempotency check — confirm-ticket may have already created this ticket
     const { data: existing } = await supabase
       .from('tickets')
       .select('id')
@@ -41,11 +42,10 @@ export async function POST(req: Request) {
       .single()
 
     if (existing) {
-      // Ticket already created by confirm-ticket route — nothing to do
       return NextResponse.json({ received: true })
     }
 
-    // Ticket not yet created (e.g. user closed tab before success page loaded)
+    // Ticket not yet created (user closed tab before success page loaded)
     const ticketCode = crypto.randomUUID().replace(/-/g, '').substring(0, 12).toLowerCase()
 
     const { error } = await supabase.from('tickets').insert({
@@ -64,7 +64,6 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Failed to create ticket' }, { status: 500 })
     }
 
-    // Increment tickets_sold
     await supabase.rpc('increment_tickets_sold', { event_id: eventId })
   }
 
