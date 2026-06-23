@@ -1,4 +1,4 @@
-import { supabase } from '@/lib/supabase'
+import { createClient } from '@/lib/supabase-server'
 import type { Event } from '@/lib/types'
 import ExploreClient from './ExploreClient'
 
@@ -8,6 +8,7 @@ async function searchEvents(params: {
   vibe?: string
   situation?: string
 }) {
+  const supabase = createClient()
   let query = supabase
     .from('events')
     .select('*, host:hosts(*)')
