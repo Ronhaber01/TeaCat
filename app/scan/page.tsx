@@ -66,15 +66,16 @@ export default function ScanPage() {
     }
 
     setChecking(false)
-    checkingRef.current = false
 
+    // Reset after 1.5s — checkingRef stays true until then so no re-scan during display
     setTimeout(() => {
       setResult(null)
       lastCodeRef.current = ''
-    }, 3000)
+      checkingRef.current = false
+    }, 1500)
   }, [])
 
-  // Start camera + jsQR scan loop
+  // Start camera + scan loop — runs once, video element never unmounts
   useEffect(() => {
     if (!libReady || !user) return
 
@@ -137,79 +138,77 @@ export default function ScanPage() {
     )
   }
 
-  // Fullscreen checking state
-  if (checking) {
-    return (
-      <div className='fixed inset-0 bg-black flex flex-col items-center justify-center gap-6'>
-        <div className='w-20 h-20 border-4 border-white/30 border-t-white rounded-full animate-spin' />
-        <p className='text-white text-2xl font-bold'>Checking...</p>
-      </div>
-    )
-  }
-
-  // Fullscreen result — green for valid, red for invalid
-  if (result) {
-    return (
-      <div className={`fixed inset-0 flex flex-col items-center justify-center gap-6 px-8 ${ result.valid ? 'bg-green-500' : 'bg-red-600' }`}>
-        <div className='text-9xl'>{result.valid ? '✅' : '❌'}</div>
-        <p className='text-white text-5xl font-black text-center leading-tight'>{result.reason}</p>
-        {result.eventName && (
-          <p className='text-white/80 text-2xl text-center'>{result.eventName}</p>
-        )}
-        {result.tier && (
-          <p className='text-white/60 text-xl capitalize'>{result.tier} ticket</p>
-        )}
-        <p className='text-white/40 text-sm mt-6'>Resetting in 3s...</p>
-      </div>
-    )
-  }
+  const showOverlay = checking || !!result
+  const overlayBg = checking ? 'bg-black/95' : result?.valid ? 'bg-green-500' : 'bg-red-600'
 
   return (
-    <div className='fixed inset-0 bg-black flex flex-col'>
-      {/* Header */}
-      <div className='absolute top-0 left-0 right-0 z-10 px-5 pt-14 pb-6 flex items-center justify-between bg-gradient-to-b from-black to-transparent'>
-        <div>
-          <h1 className='text-white font-black text-xl'>🎟️ Door Scanner</h1>
-          <p className='text-gray-400 text-sm'>{scanCount} admitted tonight</p>
-        </div>
-        <button onClick={() => router.push('/host')} className='text-gray-300 text-sm font-semibold py-2 px-4 bg-white/10 rounded-full active:scale-95 transition-transform'>
-          Done
-        </button>
-      </div>
-
-      {/* Camera feed — full screen */}
+    <div className='fixed inset-0 bg-black'>
+      {/* Camera — always mounted so stream never dies */}
       <video ref={videoRef} className='absolute inset-0 w-full h-full object-cover' playsInline muted />
       <canvas ref={canvasRef} className='hidden' />
 
-      {/* QR frame overlay */}
-      {!cameraError && (
-        <div className='absolute inset-0 flex items-center justify-center'>
-          <div className='relative w-64 h-64'>
-            <div className='absolute top-0 left-0 w-10 h-10 border-t-4 border-l-4 border-purple-400 rounded-tl-xl' />
-            <div className='absolute top-0 right-0 w-10 h-10 border-t-4 border-r-4 border-purple-400 rounded-tr-xl' />
-            <div className='absolute bottom-0 left-0 w-10 h-10 border-b-4 border-l-4 border-purple-400 rounded-bl-xl' />
-            <div className='absolute bottom-0 right-0 w-10 h-10 border-b-4 border-r-4 border-purple-400 rounded-br-xl' />
-          </div>
+      {/* Result overlay — sits on top, video stays alive underneath */}
+      {showOverlay && (
+        <div className={`absolute inset-0 flex flex-col items-center justify-center gap-6 px-8 ${overlayBg}`}>
+          {checking ? (
+            <>
+              <div className='w-20 h-20 border-4 border-white/30 border-t-white rounded-full animate-spin' />
+              <p className='text-white text-2xl font-bold'>Checking...</p>
+            </>
+          ) : (
+            <>
+              <div className='text-9xl'>{result?.valid ? '\u2705' : '\u274C'}</div>
+              <p className='text-white text-5xl font-black text-center leading-tight'>{result?.reason}</p>
+              {result?.eventName && (
+                <p className='text-white/80 text-2xl text-center'>{result.eventName}</p>
+              )}
+              {result?.tier && (
+                <p className='text-white/60 text-xl capitalize'>{result.tier} ticket</p>
+              )}
+            </>
+          )}
         </div>
       )}
 
-      {/* Camera error */}
-      {cameraError && (
-        <div className='absolute inset-0 flex items-center justify-center p-8'>
-          <div className='bg-black/90 border border-red-500/30 rounded-2xl p-6 text-center max-w-xs'>
-            <p className='text-red-400 text-lg font-bold mb-2'>Camera Error</p>
-            <p className='text-gray-400 text-sm'>{cameraError}</p>
-            <button onClick={() => window.location.reload()} className='mt-4 text-purple-400 text-sm font-semibold'>
-              Reload page
+      {/* Scanner UI — only shown when not in result/checking state */}
+      {!showOverlay && (
+        <>
+          <div className='absolute top-0 left-0 right-0 z-10 px-5 pt-14 pb-6 flex items-center justify-between bg-gradient-to-b from-black to-transparent'>
+            <div>
+              <h1 className='text-white font-black text-xl'>\uD83C\uDFAB Door Scanner</h1>
+              <p className='text-gray-400 text-sm'>{scanCount} admitted tonight</p>
+            </div>
+            <button onClick={() => router.push('/host')} className='text-gray-300 text-sm font-semibold py-2 px-4 bg-white/10 rounded-full active:scale-95 transition-transform'>
+              Done
             </button>
           </div>
-        </div>
-      )}
 
-      {/* Footer */}
-      <div className='absolute bottom-0 left-0 right-0 px-5 py-8 text-center bg-gradient-to-t from-black to-transparent'>
-        <p className='text-gray-400 text-sm'>Point camera at attendee&apos;s QR code</p>
-      </div>
+          {!cameraError && (
+            <div className='absolute inset-0 flex items-center justify-center pointer-events-none'>
+              <div className='relative w-64 h-64'>
+                <div className='absolute top-0 left-0 w-10 h-10 border-t-4 border-l-4 border-purple-400 rounded-tl-xl' />
+                <div className='absolute top-0 right-0 w-10 h-10 border-t-4 border-r-4 border-purple-400 rounded-tr-xl' />
+                <div className='absolute bottom-0 left-0 w-10 h-10 border-b-4 border-l-4 border-purple-400 rounded-bl-xl' />
+                <div className='absolute bottom-0 right-0 w-10 h-10 border-b-4 border-r-4 border-purple-400 rounded-br-xl' />
+              </div>
+            </div>
+          )}
+
+          {cameraError && (
+            <div className='absolute inset-0 flex items-center justify-center p-8'>
+              <div className='bg-black/90 border border-red-500/30 rounded-2xl p-6 text-center max-w-xs'>
+                <p className='text-red-400 text-lg font-bold mb-2'>Camera Error</p>
+                <p className='text-gray-400 text-sm'>{cameraError}</p>
+                <button onClick={() => window.location.reload()} className='mt-4 text-purple-400 text-sm font-semibold'>Reload page</button>
+              </div>
+            </div>
+          )}
+
+          <div className='absolute bottom-0 left-0 right-0 px-5 py-8 text-center bg-gradient-to-t from-black to-transparent'>
+            <p className='text-gray-400 text-sm'>Point camera at attendee&apos;s QR code</p>
+          </div>
+        </>
+      )}
     </div>
   )
 }
