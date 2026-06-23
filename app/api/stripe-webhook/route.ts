@@ -1,20 +1,18 @@
 import { NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { createClient } from '@supabase/supabase-js'
-import { sendTicketEmail } from '@/lib/send-ticket-email'
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+  apiVersion: '2024-04-10',
+})
+
+// Use service role for webhook — bypasses RLS
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
+)
 
 export async function POST(req: Request) {
-  // Lazy init — do NOT put these at module level or Next.js build will throw
-  const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-    apiVersion: '2024-04-10',
-  })
-
-  // Service role — bypasses RLS
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
-  )
-
   const body = await req.text()
   const sig = req.headers.get('stripe-signature')!
 
@@ -28,58 +26,46 @@ export async function POST(req: Request) {
 
   if (event.type === 'payment_intent.succeeded') {
     const pi = event.data.object as Stripe.PaymentIntent
-    const { eventId, tier, userId } = pi.metadata
+    const { eventId, tier } = pi.metadata
 
-    const { data: ticket, error } = await supabase
+    if (!eventId) {
+      console.error('Webhook: missing eventId in payment intent metadata')
+      return NextResponse.json({ received: true })
+    }
+
+    // Idempotency check — confirm-ticket (called from success page) may have already created this ticket
+    const { data: existing } = await supabase
       .from('tickets')
-      .insert({
-        event_id: eventId,
-        user_id: userId || null,
-        tier: tier || 'general',
-        price_paid: pi.amount,
-        currency: pi.currency,
-        stripe_payment_id: pi.id,
-        status: 'active',
-      })
-      .select('id, ticket_code')
+      .select('id')
+      .eq('stripe_payment_id', pi.id)
       .single()
 
+    if (existing) {
+      // Ticket already created by confirm-ticket route — nothing to do
+      return NextResponse.json({ received: true })
+    }
+
+    // Ticket not yet created (e.g. user closed tab before success page loaded)
+    const ticketCode = crypto.randomUUID().replace(/-/g, '').substring(0, 12).toLowerCase()
+
+    const { error } = await supabase.from('tickets').insert({
+      event_id: eventId,
+      user_id: pi.metadata.userId || null,
+      ticket_code: ticketCode,
+      tier: tier || 'general',
+      price_paid: pi.amount_received,
+      currency: pi.currency,
+      stripe_payment_id: pi.id,
+      status: 'active',
+    })
+
     if (error) {
-      console.error('Ticket insert error:', error)
+      console.error('Webhook ticket insert error:', error)
       return NextResponse.json({ error: 'Failed to create ticket' }, { status: 500 })
     }
 
     // Increment tickets_sold
     await supabase.rpc('increment_tickets_sold', { event_id: eventId })
-
-    // Send confirmation email
-    if (userId && ticket?.ticket_code) {
-      try {
-        const { data: { user: authUser } } = await supabase.auth.admin.getUserById(userId)
-        const { data: ev } = await supabase
-          .from('events')
-          .select('title, starts_at, venue_name, neighborhood, flyer_url')
-          .eq('id', eventId)
-          .single()
-
-        if (authUser?.email && ev) {
-          await sendTicketEmail({
-            to: authUser.email,
-            eventTitle: ev.title,
-            startsAt: ev.starts_at,
-            venueName: ev.venue_name,
-            neighborhood: ev.neighborhood,
-            ticketCode: ticket.ticket_code,
-            tier: tier || 'general',
-            pricePaid: pi.amount,
-            flyerUrl: ev.flyer_url,
-          })
-        }
-      } catch (emailErr) {
-        console.error('Email send error:', emailErr)
-        // Don't fail the webhook for email errors
-      }
-    }
   }
 
   return NextResponse.json({ received: true })
