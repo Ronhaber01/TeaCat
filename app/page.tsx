@@ -15,7 +15,12 @@ async function getEvents(category?: string) {
     .limit(20)
 
   if (category && category !== 'all') {
-    query = query.eq('category', category)
+    const GENRES = ['house','techno','drum-and-bass','hip-hop','afrobeats','latin','r&b','disco','pop','other']
+    if (GENRES.includes(category)) {
+      query = query.eq('genre', category)
+    } else {
+      query = query.eq('category', category)
+    }
   }
 
   const { data, error } = await query
