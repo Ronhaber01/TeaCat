@@ -49,8 +49,9 @@ return () => el.removeEventListener('scroll', onScroll)
 const shareUrl = (id: string) => 'https://teacat.nyc/events/' + id
 
 const handleShareCurrent = async () => {
-const url = openDrawerId ? shareUrl(openDrawerId) : 'https://teacat.nyc/explore'
-const title = openDrawerId ? (events.find(e => e.id === openDrawerId)?.title || 'Check this out') : 'TeaCat – NYC nightlife'
+const currentEv = openDrawerId ? events.find(e => e.id === openDrawerId) : events[currentEventIdx]
+const url = currentEv ? 'https://teacat.nyc/events/' + currentEv.id : 'https://teacat.nyc/explore'
+const title = currentEv?.title || 'TeaCat – NYC nightlife'
 if (typeof navigator !== 'undefined' && navigator.share) {
 navigator.share({ title, url }).catch(() => {})
 } else {
@@ -58,7 +59,7 @@ navigator.clipboard.writeText(url).catch(() => {})
 setShareCopied(true)
 setTimeout(() => setShareCopied(false), 2000)
 }
-}
+}}
 
 
 const refresh = useCallback(async () => {
@@ -118,6 +119,7 @@ style={{ background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(8px)' }}
 </button>
 <div
 ref={scrollRef}
+onScroll={(e) => { const el = e.currentTarget; setCurrentEventIdx(Math.round(el.scrollTop / Math.max(1, el.clientHeight))) }}
 style={{ height: '100svh', overflowY: 'scroll', scrollSnapType: 'y mandatory' }}
 >
 {events.map((event) => {
