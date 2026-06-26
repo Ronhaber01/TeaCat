@@ -240,9 +240,9 @@ activeGenre === genre
 // ─── EventCard ────────────────────────────────────────────────────────────────
 function EventCard({ event }: { event: Event }) {
 const soldOut = event.ticket_capacity !== null && event.tickets_sold >= (event.ticket_capacity ?? 0)
-const price = event.is_free ? 'Free' : event.price_max
+const price = event.is_free ? 'Free' : (event.price_max && event.price_max !== event.price_min)
 ? `$${event.price_min / 100} – $${event.price_max / 100}`
-: `From $${event.price_min / 100}`
+: `$${event.price_min / 100}`
 
 return (
 <Link href={`/events/${event.id}`} className="block group">
