@@ -1,6 +1,6 @@
 'use client'
 
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import EventCard from '@/components/EventCard'
 import BottomNav from '@/components/BottomNav'
@@ -16,11 +16,11 @@ interface Props {
 
 function getGreeting(): string {
   const hour = new Date().getHours()
-  if (hour >= 5 && hour < 12) return "Good morning, NYC 🌤️"
-  if (hour >= 12 && hour < 17) return "Tonight's looking good 🌆"
-  if (hour >= 17 && hour < 21) return "What's happening 🔥"
-  if (hour >= 21 || hour < 2) return "Still going? 🌙"
-  return "Night owl mode 🦉"
+  if (hour >= 5 && hour < 12) return "Good morning, NYC"
+  if (hour >= 12 && hour < 17) return "Tonight's looking good"
+  if (hour >= 17 && hour < 21) return "What's happening"
+  if (hour >= 21 || hour < 2) return "Still going?"
+  return "Night owl mode"
 }
 
 function getSubGreeting(): string {
@@ -29,6 +29,77 @@ function getSubGreeting(): string {
   if (hour >= 12 && hour < 17) return "Doors open soon"
   if (hour >= 17 && hour < 21) return "Events starting now"
   return "The city doesn't sleep"
+}
+
+function getCategoryIcon(value: string) {
+  switch (value) {
+    case 'club':
+      return (
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#7B2EFF" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="12" cy="4" r="2"/>
+          <path d="M8 9l4 3 4-3"/>
+          <line x1="12" y1="12" x2="12" y2="17"/>
+          <path d="M12 17l-3 5m3-5l3 5"/>
+        </svg>
+      )
+    case 'house':
+      return (
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#7B2EFF" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+          <path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+        </svg>
+      )
+    case 'techno':
+      return (
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#A3FF12" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+          <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+        </svg>
+      )
+    case 'rave':
+      return (
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#A3FF12" strokeWidth={2} strokeLinecap="round">
+          <path d="M12 12 a1 1 0 1 1 2 0 a3 3 0 1 0 -6 0 a5 5 0 1 1 10 0 a7 7 0 1 0 -14 0"/>
+        </svg>
+      )
+    case 'live':
+      return (
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#7B2EFF" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+          <path d="M9 18a4 4 0 0 0 6-5.5L19 8a2 2 0 0 0-3-3L11.5 9.5A4 4 0 1 0 9 18z"/>
+          <circle cx="9" cy="18" r="1" fill="#7B2EFF" stroke="none"/>
+        </svg>
+      )
+    case 'date':
+      return (
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#7B2EFF" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+          <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+        </svg>
+      )
+    case 'rooftop':
+      return (
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#A3FF12" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+          <line x1="2" y1="20" x2="22" y2="20"/>
+          <path d="M3 20V11l5-5 4 4 5-6 5 7v9"/>
+        </svg>
+      )
+    case 'bar':
+      return (
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#7B2EFF" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+          <line x1="8" y1="22" x2="16" y2="22"/>
+          <line x1="12" y1="11" x2="12" y2="22"/>
+          <path d="M3 3l18 0L12 11 3 3z"/>
+        </svg>
+      )
+    case 'community':
+      return (
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#A3FF12" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+          <circle cx="9" cy="7" r="4"/>
+          <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+          <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+        </svg>
+      )
+    default:
+      return null
+  }
 }
 
 export default function HomeClient({ events, featured, upcoming, activeCategory }: Props) {
@@ -70,8 +141,9 @@ export default function HomeClient({ events, featured, upcoming, activeCategory 
             <button
               key={cat.value}
               onClick={() => handleCategory(cat.value)}
-              className={`pill flex-shrink-0 ${activeCategory === cat.value ? 'pill-active' : 'pill-inactive'}`}
+              className={`pill flex-shrink-0 flex items-center gap-1.5 ${activeCategory === cat.value ? 'pill-active' : 'pill-inactive'}`}
             >
+              {getCategoryIcon(cat.value)}
               {cat.label}
             </button>
           ))}
@@ -82,8 +154,11 @@ export default function HomeClient({ events, featured, upcoming, activeCategory 
       {featured.length > 0 && (
         <section className="mb-8">
           <div className="px-5 flex items-center justify-between mb-4">
-            <h2 className="text-lg font-black text-white">
-              Featured Tonight <span className="text-[#A3FF12]">🔥</span>
+            <h2 className="text-lg font-black text-white flex items-center gap-2">
+              Featured Tonight
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#A3FF12" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+              </svg>
             </h2>
             <Link href="/explore" className="text-[#7B2EFF] text-sm font-semibold">See all</Link>
           </div>
@@ -117,7 +192,12 @@ export default function HomeClient({ events, featured, upcoming, activeCategory 
 
       {/* Boost CTA for hosts */}
       <div className="mx-5 mt-8 p-4 rounded-2xl bg-gradient-to-r from-[#7B2EFF]/20 to-[#A3FF12]/10 border border-[#7B2EFF]/30">
-        <p className="text-white font-bold text-sm mb-1">You host events? 🎉</p>
+        <p className="text-white font-bold text-sm mb-1 flex items-center gap-1.5">
+          You host events?
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#7B2EFF" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+          </svg>
+        </p>
         <p className="text-gray-400 text-xs mb-3">0% platform fee. Boost your event for $20, get $15 in credits back.</p>
         <Link href="/host" className="inline-block bg-[#7B2EFF] text-white text-xs font-bold px-4 py-2 rounded-full">
           List your event →
@@ -132,7 +212,11 @@ export default function HomeClient({ events, featured, upcoming, activeCategory 
 function EmptyState({ category }: { category: string }) {
   return (
     <div className="text-center py-16">
-      <div className="text-5xl mb-4">🌃</div>
+      <svg className="mx-auto mb-4" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#A3FF12" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+        <line x1="2" y1="20" x2="22" y2="20"/>
+        <path d="M3 20V11l5-5 4 4 5-6 5 7v9"/>
+        <path d="M9 20v-5h6v5"/>
+      </svg>
       <p className="text-white font-bold text-lg">Nothing yet</p>
       <p className="text-gray-500 text-sm mt-1">
         {category !== 'all'
