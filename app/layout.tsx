@@ -5,7 +5,7 @@ import OneSignalProvider from '@/components/OneSignalProvider'
 
 export const metadata: Metadata = {
   title: 'TeaCat — NYC Nightlife',
-  description: 'Other apps sell tickets. TeaCat finds you tonight.',
+  description: 'Other platforms sell tickets. TeaCat finds your next adventure.',
   manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
