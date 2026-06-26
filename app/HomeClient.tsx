@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
 import { format } from 'date-fns'
@@ -9,7 +10,7 @@ import BottomNav from '@/components/BottomNav'
 import { CATEGORIES, GENRES } from '@/lib/types'
 import type { Event } from '@/lib/types'
 
-// ─── SVG icons for each category pill ────────────────────────────────────────
+// ─── SVG icons for each category pill ────────────────────────────────────────────
 function getCategoryIcon(value: string, size = 14) {
 const s = { width: size, height: size, viewBox: '0 0 24 24', fill: 'none', stroke: '#A3FF12', strokeWidth: 2, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const }
 switch (value) {
@@ -20,7 +21,6 @@ case 'genres': return (
 </svg>
 )
 case 'club': return (
-// Disco ball
 <svg {...s}>
 <circle cx="12" cy="13" r="7"/>
 <path d="M5.5 10.5C8 9 16 9 18.5 10.5"/>
@@ -76,16 +76,6 @@ default: return null
 }
 }
 
-// Star icon for Music Genres pill when no sub-genre selected
-function MusicNote({ size = 14 }: { size?: number }) {
-return (
-<svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="#A3FF12" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-<path d="M9 18V5l12-2v13"/>
-<circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>
-</svg>
-)
-}
-
 interface Props {
 events: Event[]
 featured?: Event[]
@@ -94,10 +84,14 @@ activeCategory?: string
 }
 
 export default function HomeClient({ events: initialEvents }: Props) {
+const router = useRouter()
 const [activeCategory, setActiveCategory] = useState('all')
 const [activeGenre, setActiveGenre] = useState<string | null>(null)
 const [showGenres, setShowGenres] = useState(false)
 const [events, setEvents] = useState<Event[]>(initialEvents ?? [])
+
+// Sync server-refreshed props back into local state
+useEffect(() => { setEvents(initialEvents ?? []) }, [initialEvents])
 
 // Filter events
 const filtered = events.filter((e) => {
@@ -114,7 +108,6 @@ if (value === 'genres') {
 setShowGenres(prev => !prev)
 setActiveCategory('genres')
 if (showGenres) {
-// collapsing genres — reset
 setActiveGenre(null)
 setShowGenres(false)
 setActiveCategory('all')
@@ -130,8 +123,16 @@ const handleGenreClick = (genre: string) => {
 setActiveGenre(prev => prev === genre ? null : genre)
 }
 
+const refresh = useCallback(async () => {
+router.refresh()
+await new Promise<void>(r => setTimeout(r, 1000))
+}, [router])
+
+const ptr = usePullToRefresh(refresh)
+
 return (
 <div className="min-h-screen bg-[#111111] pb-28">
+<PullIndicator {...ptr} />
 <SplashScreen />
 
 {/* Header */}
@@ -184,11 +185,6 @@ style={{ transform: showGenres ? 'rotate(180deg)' : 'rotate(0deg)', transition: 
 })}
 </div>
 </div>
-
-{/* Genre sub-list — slides down when Music Genres is active */}
-{showGenres && (
-<div className="px-5 mb-4">
-<div className="mt-2 p-3 rounded-2xl border border-[#2A2A2A] bg-[#0D0D0D]">
 <p className="text-gray-600 text-[10px] font-semibold uppercase tracking-wider mb-2">Select a genre</p>
 <div className="flex flex-wrap gap-2">
 {GENRES.map((genre) => (
@@ -290,5 +286,69 @@ Featured
 </div>
 </div>
 </Link>
+)
+}
+
+// ─── Pull-to-refresh ──────────────────────────────────────────────────────────────
+function usePullToRefresh(onRefresh: () => Promise<void>) {
+const [ptr, setPtr] = useState({ progress: 0, refreshing: false })
+const startY = useRef(0)
+const pulling = useRef(false)
+const prog = useRef(0)
+const fn = useRef(onRefresh)
+fn.current = onRefresh
+
+useEffect(() => {
+const T = 60
+const onStart = (e: TouchEvent) => {
+if (window.scrollY <= 0) { startY.current = e.touches[0].clientY; pulling.current = true }
+}
+const onMove = (e: TouchEvent) => {
+if (!pulling.current) return
+const d = e.touches[0].clientY - startY.current
+if (d > 0) { prog.current = Math.min(d / T, 1); setPtr(x => x.refreshing ? x : { progress: prog.current, refreshing: false }) }
+else { pulling.current = false; prog.current = 0; setPtr({ progress: 0, refreshing: false }) }
+}
+const onEnd = async () => {
+if (!pulling.current) return
+const p = prog.current; pulling.current = false; prog.current = 0; startY.current = 0
+if (p >= 1) { setPtr({ progress: 1, refreshing: true }); await fn.current(); setPtr({ progress: 0, refreshing: false }) }
+else setPtr({ progress: 0, refreshing: false })
+}
+window.addEventListener('touchstart', onStart, { passive: true })
+window.addEventListener('touchmove', onMove, { passive: true })
+window.addEventListener('touchend', onEnd)
+return () => {
+window.removeEventListener('touchstart', onStart)
+window.removeEventListener('touchmove', onMove)
+window.removeEventListener('touchend', onEnd)
+}
+}, [])
+
+return ptr
+}
+
+function PullIndicator({ progress, refreshing }: { progress: number; refreshing: boolean }) {
+if (!progress && !refreshing) return null
+return (
+<div
+className="fixed left-1/2 pointer-events-none"
+style={{
+top: 12,
+transform: `translateX(-50%) translateY(${refreshing ? 0 : (progress - 1) * 28}px)`,
+opacity: Math.min(progress * 2, 1),
+transition: refreshing ? 'transform 0.2s ease, opacity 0.2s ease' : 'none',
+zIndex: 60,
+}}
+>
+<div
+className={`w-6 h-6 rounded-full border-2 ${refreshing ? 'animate-spin' : ''}`}
+style={{
+borderColor: '#7B2EFF',
+borderTopColor: 'transparent',
+transform: !refreshing ? `rotate(${progress * 270}deg)` : undefined,
+}}
+/>
+</div>
 )
 }
