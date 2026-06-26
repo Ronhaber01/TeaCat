@@ -106,7 +106,7 @@ const filtered = events.filter((e) => {
 if (activeCategory === 'all') return true
 if (activeCategory === 'genres') {
 if (!activeGenre) return true
-return e.genre?.toLowerCase() === activeGenre?.toLowerCase()
+return (e.vibe_tags ?? []).some((t: string) => t.toLowerCase() === (activeGenre ?? '').toLowerCase())
 }
 return e.category === activeCategory
 })
