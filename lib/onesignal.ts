@@ -1,59 +1,70 @@
 // lib/onesignal.ts
-// Centralized OneSignal manager. All OneSignal interactions go through here.
-// Never import the OneSignal SDK directly outside this module.
+// OneSignal integration using CDN SDK (no npm package needed).
+// The SDK script is injected by OneSignalProvider via next/script.
+// All calls use window.OneSignalDeferred so they queue safely before the SDK loads.
 
 const APP_ID = 'ab8df582-b1ac-43cf-b969-597798b94341'
 
-let initialized = false
-
-async function getSDK() {
-  const mod = await import('@onesignal/onesignal-web-sdk')
-  return mod.default
+declare global {
+  interface Window {
+    OneSignalDeferred?: Array<(OneSignal: any) => void>
+    OneSignal?: any
+  }
 }
 
-export async function initOneSignal(): Promise<void> {
-  if (initialized || typeof window === 'undefined') return
-  try {
-    const OneSignal = await getSDK()
-    await OneSignal.init({
-      appId: APP_ID,
-      serviceWorkerParam: { scope: '/' },
-      serviceWorkerPath: '/OneSignalSDKWorker.js',
-      notifyButton: { enable: false },
-      allowLocalhostAsSecureOrigin: process.env.NODE_ENV === 'development',
+function run(fn: (sdk: any) => void): void {
+  if (typeof window === 'undefined') return
+  if (window.OneSignal) {
+    fn(window.OneSignal)
+  } else {
+    window.OneSignalDeferred = window.OneSignalDeferred || []
+    window.OneSignalDeferred.push(fn)
+  }
+}
+
+export function scheduleOneSignalInit(): void {
+  if (typeof window === 'undefined') return
+  window.OneSignalDeferred = window.OneSignalDeferred || []
+  window.OneSignalDeferred.push(async function(OneSignal: any) {
+    try {
+      await OneSignal.init({
+        appId: APP_ID,
+        serviceWorkerParam: { scope: '/' },
+        serviceWorkerPath: '/OneSignalSDKWorker.js',
+        notifyButton: { enable: false },
+      })
+    } catch (err) {
+      console.error('[OneSignal] init error', err)
+    }
+  })
+}
+
+export function requestNotificationPermission(): Promise<boolean> {
+  return new Promise((resolve) => {
+    run(async (OneSignal) => {
+      try {
+        const accepted = await OneSignal.Notifications.requestPermission()
+        resolve(!!accepted)
+      } catch {
+        resolve(false)
+      }
     })
-    initialized = true
-  } catch (err) {
-    console.error('[OneSignal] init error', err)
-  }
+  })
 }
 
-export async function requestNotificationPermission(): Promise<boolean> {
-  if (typeof window === 'undefined') return false
-  try {
-    const OneSignal = await getSDK()
-    const accepted = await OneSignal.Notifications.requestPermission()
-    return !!accepted
-  } catch {
-    return false
-  }
+export function identifyUser(userId: string, email?: string): void {
+  run((OneSignal) => {
+    try {
+      OneSignal.login(userId)
+      if (email) OneSignal.User.addEmail(email)
+    } catch (err) {
+      console.error('[OneSignal] identify error', err)
+    }
+  })
 }
 
-export async function identifyUser(userId: string, email?: string): Promise<void> {
-  if (typeof window === 'undefined') return
-  try {
-    const OneSignal = await getSDK()
-    OneSignal.login(userId)
-    if (email) OneSignal.User.addEmail(email)
-  } catch (err) {
-    console.error('[OneSignal] identify error', err)
-  }
-}
-
-export async function logoutOneSignal(): Promise<void> {
-  if (typeof window === 'undefined') return
-  try {
-    const OneSignal = await getSDK()
-    OneSignal.logout()
-  } catch {}
+export function logoutOneSignal(): void {
+  run((OneSignal) => {
+    try { OneSignal.logout() } catch {}
+  })
 }
