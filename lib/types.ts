@@ -23,7 +23,7 @@ export type Event = {
   city: string
   starts_at: string
   ends_at: string | null
-  category: 'club' | 'house' | 'techno' | 'rave' | 'live' | 'date' | 'rooftop' | 'bar' | 'community' | 'other' | null
+  category: 'club' | 'house' | 'techno' | 'rave' | 'live' | 'date' | 'rooftop' | 'bar' | 'community' | 'popup' | 'other' | null
   vibe_tags: string[] | null
   price_min: number
   price_max: number | null
@@ -105,25 +105,51 @@ export type Crew = {
   friend?: User
 }
 
+// Main event categories (venue / event type)
 export const CATEGORIES = [
   { value: 'all', label: 'All' },
+  { value: 'genres', label: 'Music Genres' },
   { value: 'club', label: 'Club' },
-  { value: 'house', label: 'House' },
-  { value: 'techno', label: 'Techno' },
-  { value: 'rave', label: 'Rave' },
-  { value: 'live', label: 'Live' },
-  { value: 'date', label: 'Date' },
-  { value: 'rooftop', label: 'Rooftop' },
   { value: 'bar', label: 'Bar' },
+  { value: 'popup', label: 'Pop Up' },
+  { value: 'live', label: 'Live Music' },
   { value: 'community', label: 'Community' },
+  { value: 'rooftop', label: 'Rooftop' },
+  { value: 'rave', label: 'Rave' },
 ] as const
 
+// Music genres — stored in vibe_tags[]
+export const GENRES = [
+  'House',
+  'Techno',
+  'Drum & Bass',
+  'Jungle / Breaks',
+  'Trance',
+  'Ambient / Downtempo',
+  'Afrobeats',
+  'Hip-Hop / Rap',
+  'R&B',
+  'Funk / Soul',
+  'Jazz',
+  'Reggaeton',
+  'Latin / Salsa',
+  'Dancehall',
+  'UK Garage / Bass',
+  'Dubstep',
+  'Hardstyle',
+  'Experimental',
+  'Pop',
+  'Rock / Indie',
+] as const
+
+export type Genre = typeof GENRES[number]
+
 export const VIBES = [
-  { value: 'on_fire', label: '🔥 On Fire' },
-  { value: 'dance', label: '💃 Dance' },
-  { value: 'chill', label: '😌 Chill' },
-  { value: 'late_night', label: '🌙 Late Night' },
-  { value: 'underground', label: '🎶 Underground' },
+  { value: 'on_fire', label: 'On Fire' },
+  { value: 'dance', label: 'Dance' },
+  { value: 'chill', label: 'Chill' },
+  { value: 'late_night', label: 'Late Night' },
+  { value: 'underground', label: 'Underground' },
 ]
 
 export const SITUATIONS = [
