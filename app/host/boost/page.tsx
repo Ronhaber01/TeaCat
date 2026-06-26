@@ -1,11 +1,10 @@
 'use client'
 
-export const dynamic = 'force-dynamic'
-
+import { Suspense } from 'react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 
-export default function BoostPage() {
+function BoostContent() {
   const searchParams = useSearchParams()
   const eventId = searchParams.get('eventId')
 
@@ -60,5 +59,13 @@ export default function BoostPage() {
         <p className="text-gray-600 text-xs mt-1">Email <a href="mailto:hello@teacat.app" className="text-[#7B2EFF]">hello@teacat.app</a> to boost your event now.</p>
       </div>
     </div>
+  )
+}
+
+export default function BoostPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-[#111111]" />}>
+      <BoostContent />
+    </Suspense>
   )
 }
