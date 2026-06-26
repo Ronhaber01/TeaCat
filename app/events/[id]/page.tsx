@@ -65,8 +65,11 @@ export default async function EventPage({ params }: { params: { id: string } }) 
         </div>
 
         {e.boost_active && (
-          <div className="absolute bottom-32 right-5 bg-[#A3FF12] text-black text-xs font-black px-3 py-1 rounded-full">
-            🔥 Featured
+          <div className="absolute bottom-32 right-5 bg-[#A3FF12] text-black text-xs font-black px-3 py-1 rounded-full flex items-center gap-1">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round">
+              <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+            </svg>
+            Featured
           </div>
         )}
       </div>
