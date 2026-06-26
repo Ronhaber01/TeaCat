@@ -45,11 +45,11 @@ html, body {
   }
 
   .pill-active {
-    @apply bg-[#7B2EFF] text-white;
+    @apply bg-[#7B2EFF] text-[#A3FF12];
   }
 
   .pill-inactive {
-    @apply bg-[#1A1A1A] text-gray-400 border border-[#2A2A2A];
+    @apply bg-transparent text-[#A3FF12] border border-[#2A2A2A];
   }
 
   .card {
