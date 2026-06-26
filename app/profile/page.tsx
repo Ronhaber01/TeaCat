@@ -249,7 +249,7 @@ className={`flex-1 py-2.5 rounded-xl text-sm font-bold capitalize transition-all
 mode === m ? 'bg-[#7B2EFF] text-[#A3FF12]' : 'text-gray-500'
 }`}
 >
-{m === 'user' ? 'Fan Mode' : 'Host Mode'}
+{m === 'user' ? 'Explorer Mode' : 'Host Mode'}
 </button>
 ))}
 </div>
@@ -433,8 +433,8 @@ Sign out
 <div className="fixed inset-0 z-[60] flex flex-col justify-end" style={{ background: 'rgba(0,0,0,0.7)' }} onClick={() => setShowCameraSheet(false)}>
 <div className="rounded-t-3xl p-6 pb-10" style={{ background: '#1A1A1A' }} onClick={e => e.stopPropagation()}>
 <div className="w-10 h-1 rounded-full mx-auto mb-5" style={{ background: '#333' }}/>
-<p className="font-black text-lg mb-2 text-center" style={{ color: '#A3FF12' }}>You're in your prime</p>
-<p className="text-sm text-center mb-6 leading-relaxed" style={{ color: '#999' }}>We age like wine — show us where you're at right now, at your peak. This is your moment.</p>
+<p className="font-black text-lg mb-2 text-center" style={{ color: '#A3FF12' }}>We're aging like wine</p>
+<p className="text-sm text-center mb-6 leading-relaxed" style={{ color: '#999' }}>So why not just show us you peaking?</p>
 <button onClick={() => { setShowCameraSheet(false); fileInputRef.current?.click() }} className="w-full py-4 rounded-2xl font-black text-base text-white" style={{ background: '#7B2EFF' }}>
 Take the shot
 </button>
