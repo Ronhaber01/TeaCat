@@ -18,7 +18,8 @@
     "@stripe/react-stripe-js": "^2.7.0",
     "stripe": "^15.7.0",
     "qrcode.react": "^3.1.0",
-    "date-fns": "^3.3.1"
+    "date-fns": "^3.3.1",
+    "resend": "^2.0.0"
   },
   "devDependencies": {
     "@types/node": "^20",
