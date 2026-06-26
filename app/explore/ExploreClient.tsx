@@ -29,7 +29,6 @@ const router = useRouter()
 const [openDrawerId, setOpenDrawerId] = useState<string | null>(null)
 const [drawerEvent, setDrawerEvent] = useState<Event | null>(null)
 const [shareCopied, setShareCopied] = useState(false)
-const [shareCopied, setShareCopied] = useState(false)
 const scrollRef = useRef<HTMLDivElement>(null)
 
 useEffect(() => {
@@ -61,17 +60,6 @@ setTimeout(() => setShareCopied(false), 2000)
 }
 }
 
-const handleShareCurrent = async () => {
-const url = openDrawerId ? shareUrl(openDrawerId) : 'https://teacat.nyc/explore'
-const title = openDrawerId ? (events.find(e => e.id === openDrawerId)?.title || 'Check this out') : 'TeaCat – NYC nightlife'
-if (typeof navigator !== 'undefined' && navigator.share) {
-navigator.share({ title, url }).catch(() => {})
-} else {
-navigator.clipboard.writeText(url).catch(() => {})
-setShareCopied(true)
-setTimeout(() => setShareCopied(false), 2000)
-}
-}
 
 const refresh = useCallback(async () => {
 router.refresh()
