@@ -2,6 +2,7 @@ import { createClient } from '@/lib/supabase-server'
 import { format } from 'date-fns'
 import Image from 'next/image'
 import Link from 'next/link'
+import type { ReactNode } from 'react'
 import type { Event } from '@/lib/types'
 import BottomNav from '@/components/BottomNav'
 import SaveButton from './SaveButton'
@@ -91,18 +92,64 @@ export default async function EventPage({ params }: { params: { id: string } }) 
         )}
 
         <div className="bg-[#1A1A1A] rounded-2xl border border-[#2A2A2A] divide-y divide-[#2A2A2A] mb-6">
-          <DetailRow icon="📅" label="Date & Time" value={format(startTime, 'EEEE, MMMM d · h:mm a')} />
-          {e.venue_name && <DetailRow icon="📍" label="Venue" value={`${e.venue_name}${e.neighborhood ? ` · ${e.neighborhood}` : ''}`} />}
-          {e.address && <DetailRow icon="🗺️" label="Address" value={e.address} />}
           <DetailRow
-            icon="💵"
+            icon={
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7B2EFF" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                <line x1="16" y1="2" x2="16" y2="6"/>
+                <line x1="8" y1="2" x2="8" y2="6"/>
+                <line x1="3" y1="10" x2="21" y2="10"/>
+              </svg>
+            }
+            label="Date & Time"
+            value={format(startTime, 'EEEE, MMMM d · h:mm a')}
+          />
+          {e.venue_name && (
+            <DetailRow
+              icon={
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#A3FF12" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                  <circle cx="12" cy="10" r="3"/>
+                </svg>
+              }
+              label="Venue"
+              value={`${e.venue_name}${e.neighborhood ? ` · ${e.neighborhood}` : ''}`}
+            />
+          )}
+          {e.address && (
+            <DetailRow
+              icon={
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7B2EFF" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                  <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/>
+                  <line x1="8" y1="2" x2="8" y2="18"/>
+                  <line x1="16" y1="6" x2="16" y2="22"/>
+                </svg>
+              }
+              label="Address"
+              value={e.address}
+            />
+          )}
+          <DetailRow
+            icon={
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#A3FF12" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                <line x1="12" y1="1" x2="12" y2="23"/>
+                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+              </svg>
+            }
             label="Price"
             value={e.is_free ? 'Free' : e.price_max ? `$${e.price_min / 100} – $${e.price_max / 100}` : `From $${e.price_min / 100}`}
             highlight={e.is_free}
           />
           {e.ticket_capacity && (
             <DetailRow
-              icon="👥"
+              icon={
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7B2EFF" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+                  <circle cx="9" cy="7" r="4"/>
+                  <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                </svg>
+              }
               label="Capacity"
               value={soldOut ? 'Sold out' : `${e.ticket_capacity - e.tickets_sold} spots left`}
               highlight={!soldOut}
@@ -157,10 +204,10 @@ export default async function EventPage({ params }: { params: { id: string } }) 
   )
 }
 
-function DetailRow({ icon, label, value, highlight }: { icon: string; label: string; value: string; highlight?: boolean }) {
+function DetailRow({ icon, label, value, highlight }: { icon: ReactNode; label: string; value: string; highlight?: boolean }) {
   return (
     <div className="flex items-center gap-4 px-4 py-3.5">
-      <span className="text-lg w-7 text-center flex-shrink-0">{icon}</span>
+      <div className="w-7 flex items-center justify-center flex-shrink-0">{icon}</div>
       <div>
         <p className="text-gray-600 text-xs">{label}</p>
         <p className={`font-semibold text-sm ${highlight ? 'text-[#A3FF12]' : 'text-white'}`}>{value}</p>
