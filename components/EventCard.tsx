@@ -101,7 +101,7 @@ export default function EventCard({ event, variant = 'grid' }: EventCardProps) {
 function BoostBadge() {
   return (
     <div className='absolute top-2 right-2 bg-[#A3FF12] text-black text-[10px] font-black px-2 py-0.5 rounded-full uppercase tracking-wide z-10'>
-      🔥 Hot
+      Hot
     </div>
   )
 }
