@@ -1,5 +1,7 @@
 'use client'
 
+export const dynamic = 'force-dynamic'
+
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 
@@ -18,9 +20,7 @@ export default function BoostPage() {
         </svg>
       </Link>
 
-      <svg className="mx-auto mb-6" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#A3FF12" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
-        <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
-      </svg>
+      <div className="text-5xl mb-6">🚀</div>
       <h1 className="text-white font-black text-3xl mb-2">Event Boost</h1>
       <p className="text-gray-400 text-sm mb-8 leading-relaxed">
         Boost your event to the top of the feed and reach more people in NYC. Spend $20 and get $15 back in credits toward your next boost.
