@@ -107,7 +107,13 @@ export function AttendeeSection({ attendees, hasTicket, eventId, userId }: { att
       {/* Paywall or See All */}
       {!hasTicket ? (
         <div className="rounded-2xl border border-[#2A2A2A] p-5 flex flex-col items-center gap-3 text-center" style={{ backdropFilter: 'blur(8px)', background: 'rgba(17,17,17,0.92)' }}>
-          <p className="text-white font-bold">See who's coming to the party 👀</p>
+          <div className="flex items-center justify-center gap-2">
+<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#7B2EFF" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+<circle cx="12" cy="12" r="3"/>
+</svg>
+<p className="text-white font-bold">See who's coming to the party</p>
+</div>
           <Link
             href={userId ? `/events/${eventId}/checkout` : `/auth?redirect=/events/${eventId}`}
             className="block w-full py-3 rounded-2xl text-white font-bold text-sm text-center"
