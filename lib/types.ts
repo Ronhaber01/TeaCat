@@ -107,15 +107,15 @@ export type Crew = {
 
 export const CATEGORIES = [
   { value: 'all', label: 'All' },
-  { value: 'club', label: '🕺 Club' },
-  { value: 'house', label: '🏠 House' },
-  { value: 'techno', label: '⚡ Techno' },
-  { value: 'rave', label: '🌀 Rave' },
-  { value: 'live', label: '🎸 Live' },
-  { value: 'date', label: '🌹 Date' },
-  { value: 'rooftop', label: '🌃 Rooftop' },
-  { value: 'bar', label: '🍸 Bar' },
-  { value: 'community', label: '❤️ Community' },
+  { value: 'club', label: 'Club' },
+  { value: 'house', label: 'House' },
+  { value: 'techno', label: 'Techno' },
+  { value: 'rave', label: 'Rave' },
+  { value: 'live', label: 'Live' },
+  { value: 'date', label: 'Date' },
+  { value: 'rooftop', label: 'Rooftop' },
+  { value: 'bar', label: 'Bar' },
+  { value: 'community', label: 'Community' },
 ] as const
 
 export const VIBES = [
