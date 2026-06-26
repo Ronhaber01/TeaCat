@@ -1,7 +1,8 @@
 'use client'
 
 import { useEffect } from 'react'
-import { initOneSignal } from '@/lib/onesignal'
+import Script from 'next/script'
+import { scheduleOneSignalInit } from '@/lib/onesignal'
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>
@@ -26,9 +27,17 @@ export default function OneSignalProvider({ children }: { children: React.ReactN
       deferredInstallPrompt = e as BeforeInstallPromptEvent
     }
     window.addEventListener('beforeinstallprompt', handler)
-    initOneSignal()
+    scheduleOneSignalInit()
     return () => window.removeEventListener('beforeinstallprompt', handler)
   }, [])
 
-  return <>{children}</>
+  return (
+    <>
+      <Script
+        src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js"
+        strategy="lazyOnload"
+      />
+      {children}
+    </>
+  )
 }
