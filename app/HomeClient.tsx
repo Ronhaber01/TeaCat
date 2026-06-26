@@ -10,7 +10,7 @@ import BottomNav from '@/components/BottomNav'
 import { CATEGORIES, GENRES } from '@/lib/types'
 import type { Event } from '@/lib/types'
 
-// ─── SVG icons for each category pill ────────────────────────────────────────────
+// ─── SVG icons for each category pill ────────────────────────────────────────
 function getCategoryIcon(value: string, size = 14) {
 const s = { width: size, height: size, viewBox: '0 0 24 24', fill: 'none', stroke: '#A3FF12', strokeWidth: 2, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const }
 switch (value) {
@@ -90,10 +90,8 @@ const [activeGenre, setActiveGenre] = useState<string | null>(null)
 const [showGenres, setShowGenres] = useState(false)
 const [events, setEvents] = useState<Event[]>(initialEvents ?? [])
 
-// Sync server-refreshed props back into local state
 useEffect(() => { setEvents(initialEvents ?? []) }, [initialEvents])
 
-// Filter events
 const filtered = events.filter((e) => {
 if (activeCategory === 'all') return true
 if (activeCategory === 'genres') {
@@ -135,7 +133,6 @@ return (
 <PullIndicator {...ptr} />
 <SplashScreen />
 
-{/* Header */}
 <div className="px-5 pt-14 pb-4">
 <div className="flex items-center justify-between mb-1">
 <div>
@@ -151,7 +148,6 @@ return (
 </div>
 </div>
 
-{/* Category pills */}
 <div className="px-5 mb-1">
 <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
 {CATEGORIES.map((cat) => {
@@ -185,6 +181,10 @@ style={{ transform: showGenres ? 'rotate(180deg)' : 'rotate(0deg)', transition: 
 })}
 </div>
 </div>
+
+{showGenres && (
+<div className="px-5 mb-4">
+<div className="mt-2 p-3 rounded-2xl border border-[#2A2A2A] bg-[#0D0D0D]">
 <p className="text-gray-600 text-[10px] font-semibold uppercase tracking-wider mb-2">Select a genre</p>
 <div className="flex flex-wrap gap-2">
 {GENRES.map((genre) => (
@@ -205,7 +205,6 @@ activeGenre === genre
 </div>
 )}
 
-{/* Events grid */}
 <div className="px-5">
 {filtered.length === 0 ? (
 <div className="text-center py-16">
@@ -232,7 +231,6 @@ activeGenre === genre
 </div>
 )
 }
-
 // ─── EventCard ────────────────────────────────────────────────────────────────
 function EventCard({ event }: { event: Event }) {
 const soldOut = event.ticket_capacity !== null && event.tickets_sold >= (event.ticket_capacity ?? 0)
@@ -243,7 +241,6 @@ const price = event.is_free ? 'Free' : (event.price_max && event.price_max !== e
 return (
 <Link href={`/events/${event.id}`} className="block group">
 <div className="rounded-3xl overflow-hidden bg-[#1A1A1A] border border-[#2A2A2A] active:scale-[0.98] transition-transform">
-{/* Flyer */}
 <div className="relative aspect-[4/3]">
 {event.flyer_url ? (
 <Image src={event.flyer_url} alt={event.title} fill className="object-cover" unoptimized />
@@ -267,8 +264,6 @@ Featured
 </div>
 )}
 </div>
-
-{/* Info */}
 <div className="p-4">
 <h3 className="text-white font-black text-base leading-tight mb-1">{event.title}</h3>
 {event.venue_name && (
@@ -289,7 +284,7 @@ Featured
 )
 }
 
-// ─── Pull-to-refresh ──────────────────────────────────────────────────────────────
+// ─── Pull-to-refresh ──────────────────────────────────────────────────────────
 function usePullToRefresh(onRefresh: () => Promise<void>) {
 const [ptr, setPtr] = useState({ progress: 0, refreshing: false })
 const startY = useRef(0)
