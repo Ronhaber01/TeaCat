@@ -57,7 +57,7 @@ export default function TicketsPage() {
   if (notLoggedIn) {
     return (
       <div className="min-h-screen bg-[#111111] flex flex-col items-center justify-center px-5 text-center pb-28">
-        <div className="text-5xl mb-4">🎟️</div>
+        <svg className="mx-auto mb-4" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#A3FF12" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><path strokeLinecap="round" strokeLinejoin="round" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" /></svg>
         <p className="text-white font-bold text-lg mb-2">Sign in to see your tickets</p>
         <Link href="/auth" className="btn-primary mt-4">Sign in →</Link>
         <BottomNav />
@@ -68,7 +68,7 @@ export default function TicketsPage() {
   return (
     <div className="min-h-screen bg-[#111111] pb-28">
       <header className="px-5 pt-14 pb-4">
-        <h1 className="text-2xl font-black text-white">My Tickets 🎟️</h1>
+        <h1 className="text-2xl font-black text-white">My Tickets</h1>
       </header>
 
       <div className="px-5 mb-6">
@@ -173,7 +173,7 @@ export default function TicketsPage() {
 function EmptyTickets({ tab }: { tab: string }) {
   return (
     <div className="text-center px-5 py-16">
-      <div className="text-5xl mb-4">🎟️</div>
+      <svg className="mx-auto mb-4" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#A3FF12" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round"><path strokeLinecap="round" strokeLinejoin="round" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" /></svg>
       <p className="text-white font-bold text-lg">No {tab} tickets</p>
       <p className="text-gray-500 text-sm mt-1 mb-6">
         {tab === 'upcoming' ? "Find tonight's events and grab a ticket" : 'Your past events will show up here'}
