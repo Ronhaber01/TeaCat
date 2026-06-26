@@ -1,12 +1,11 @@
 'use client'
 
-export const dynamic = 'force-dynamic'
-
+import { Suspense } from 'react'
 import { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase-browser'
 
-export default function OnboardingPage() {
+function OnboardingContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const redirect = searchParams.get('redirect') || '/'
@@ -43,7 +42,7 @@ export default function OnboardingPage() {
     })
   }, [])
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!form.full_name.trim()) { setError('Please enter your full name'); return }
     if (!form.phone.trim()) { setError('Please enter your phone number'); return }
@@ -113,5 +112,13 @@ export default function OnboardingPage() {
         <p className="text-gray-700 text-xs text-center">Your info is only used to personalise TeaCat and send you updates.</p>
       </form>
     </div>
+  )
+}
+
+export default function OnboardingPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-[#111111]" />}>
+      <OnboardingContent />
+    </Suspense>
   )
 }
