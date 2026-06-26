@@ -24,6 +24,7 @@ export default function ProfilePage() {
   const [saved, setSaved] = useState<SavedEvent[]>([])
   const [hostedEvents, setHostedEvents] = useState<Event[]>([])
   const [loading, setLoading] = useState(true)
+const [copied, setCopied] = useState(false)
   const supabase = createClient()
 
   useEffect(() => {
@@ -78,6 +79,17 @@ export default function ProfilePage() {
   }
   if (!user) return null
 
+  const handleShare = async () => {
+    const url = profile?.username ? `https://teacat.nyc/profile/${profile.username}` : 'https://teacat.nyc/profile'
+    if (typeof navigator !== 'undefined' && navigator.share) {
+      try { await navigator.share({ title: (profile?.full_name || 'Profile') + ' on TeaCat', url }) } catch {}
+    } else {
+      try { await navigator.clipboard.writeText(url) } catch {}
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    }
+  }
+
   const displayName = profile?.full_name || profile?.username || user.email?.split('@')[0] || 'You'
   const initials = displayName[0].toUpperCase()
   const tcScore = profile?.tc_score ?? 0
@@ -113,12 +125,15 @@ export default function ProfilePage() {
           </div>
           <div className="flex gap-2">
             {/* Share button */}
-            <button className="w-9 h-9 rounded-full bg-[#1A1A1A] border border-[#2A2A2A] flex items-center justify-center active:scale-90 transition-transform">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
-                <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
-              </svg>
-            </button>
+<button onClick={handleShare} className="w-9 h-9 rounded-full bg-[#1A1A1A] border border-[#2A2A2A] flex items-center justify-center active:scale-90 transition-transform">
+{copied ? (
+<span className="text-[#A3FF12] text-[8px] font-black leading-tight text-center">Copied!</span>
+) : (
+<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#A3FF12" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+<path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/>
+</svg>
+)}
+</button>
             <Link href="/profile/edit" className="w-9 h-9 rounded-full bg-[#1A1A1A] border border-[#2A2A2A] flex items-center justify-center active:scale-90 transition-transform">
               <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#fff" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
