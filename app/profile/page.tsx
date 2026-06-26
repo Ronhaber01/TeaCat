@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 import { format } from 'date-fns'
 import BottomNav from '@/components/BottomNav'
 import { useAuth } from '@/components/AuthProvider'
@@ -11,11 +12,6 @@ import type { User, Ticket, SavedEvent } from '@/lib/types'
 
 const TABS = ['History', 'Saved', 'Crew'] as const
 type Tab = typeof TABS[number]
-
-const CATEGORY_EMOJI: Record<string, string> = {
-  club: '🕺', house: '🏠', techno: '⚡', rave: '🌀', live: '🎸',
-  date: '🌹', rooftop: '🌃', bar: '🍸', community: '❤️', other: '🎉',
-}
 
 export default function ProfilePage() {
   const { user, loading: authLoading, signOut } = useAuth()
@@ -78,9 +74,7 @@ export default function ProfilePage() {
   const displayName = profile?.full_name || profile?.username || user.email?.split('@')[0] || 'You'
   const initials = displayName[0].toUpperCase()
   const tcScore = profile?.tc_score ?? 0
-  const scoreLevel = tcScore >= 500 ? '🔥 Legend' : tcScore >= 200 ? '⚡ Regular' : '🌱 Newbie'
-  const pastTickets = tickets.filter((t) => t.status === 'used' || t.status === 'cancelled')
-  const upcomingTickets = tickets.filter((t) => t.status === 'active')
+  const scoreLevel = tcScore >= 500 ? 'Legend' : tcScore >= 200 ? 'Regular' : 'Newbie'
 
   return (
     <div className="min-h-screen bg-[#111111] pb-28">
@@ -94,10 +88,17 @@ export default function ProfilePage() {
             <div>
               <h1 className="text-white font-black text-xl leading-tight">{displayName}</h1>
               {profile?.username && <p className="text-gray-500 text-sm">@{profile.username}</p>}
-              {profile?.neighborhood && <p className="text-gray-600 text-xs mt-0.5">📍 {profile.neighborhood}</p>}
+              {profile?.neighborhood && (
+                <p className="text-gray-600 text-xs mt-0.5 flex items-center gap-1">
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                    <circle cx="12" cy="10" r="3"/>
+                  </svg>
+                  {profile.neighborhood}
+                </p>
+              )}
             </div>
           </div>
-          {/* Edit profile */}
           <Link
             href="/profile/edit"
             className="w-10 h-10 rounded-full bg-[#1A1A1A] border border-[#2A2A2A] flex items-center justify-center active:scale-90 transition-transform"
@@ -141,7 +142,7 @@ export default function ProfilePage() {
               key={t}
               onClick={() => setTab(t)}
               className={`flex-1 py-2.5 rounded-xl text-sm font-bold transition-all ${
-                tab === t ? 'bg-[#7B2EFF] text-white' : 'text-gray-500'
+                tab === t ? 'bg-[#7B2EFF] text-[#A3FF12]' : 'text-gray-500'
               }`}
             >
               {t}
@@ -153,27 +154,57 @@ export default function ProfilePage() {
       {/* Tab content */}
       <div className="px-5">
         {tab === 'History' && (
-          <div className="flex flex-col gap-3">
-            {tickets.length === 0 ? (
-              <EmptyTab icon="🌃" title="No events yet" sub="Your tickets will appear here" />
-            ) : (
-              tickets.map((ticket) => (
-                <TicketRow key={ticket.id} ticket={ticket} />
-              ))
-            )}
-          </div>
+          tickets.length === 0 ? (
+            <EmptyTab title="No events yet" sub="Your tickets will appear here" />
+          ) : (
+            <div className="grid grid-cols-2 gap-3">
+              {tickets.map((ticket) => {
+                const event = ticket.event as any
+                return (
+                  <Link key={ticket.id} href={`/events/${event?.id}`} className="block">
+                    <div className="relative rounded-2xl overflow-hidden bg-[#1A1A1A]" style={{ aspectRatio: '1' }}>
+                      {event?.flyer_url ? (
+                        <Image
+                          src={event.flyer_url}
+                          alt={event.title || 'Event'}
+                          fill
+                          className="object-cover"
+                          unoptimized
+                        />
+                      ) : (
+                        <div
+                          className="absolute inset-0 flex items-center justify-center p-3"
+                          style={{ background: 'linear-gradient(135deg, rgba(123,46,255,0.2), rgba(163,255,18,0.2))' }}
+                        >
+                          <p className="text-white font-bold text-xs text-center line-clamp-3">{event?.title}</p>
+                        </div>
+                      )}
+                      <div className="absolute bottom-0 left-0 right-0 px-2 py-1.5 bg-black/60">
+                        <p className="text-white text-xs font-semibold line-clamp-1">{event?.title || 'Event'}</p>
+                        <p className={`text-[10px] font-semibold ${ticket.status === 'active' ? 'text-[#A3FF12]' : 'text-gray-500'}`}>
+                          {ticket.status === 'active' ? 'Active' : 'Used'}
+                        </p>
+                      </div>
+                    </div>
+                  </Link>
+                )
+              })}
+            </div>
+          )
         )}
 
         {tab === 'Saved' && (
           <div className="flex flex-col gap-3">
             {saved.length === 0 ? (
-              <EmptyTab icon="🔖" title="Nothing saved" sub="Tap the bookmark on any event to save it" />
+              <EmptyTab title="Nothing saved" sub="Tap the bookmark on any event to save it" />
             ) : (
               saved.map((se) => se.event && (
                 <Link key={se.id} href={`/events/${se.event.id}`} className="block">
                   <div className="flex items-center gap-4 p-4 rounded-2xl bg-[#1A1A1A] border border-[#2A2A2A] active:scale-95 transition-transform">
-                    <div className="w-12 h-12 rounded-xl bg-[#2A2A2A] flex items-center justify-center text-xl flex-shrink-0">
-                      {CATEGORY_EMOJI[se.event.category || 'other'] || '🎉'}
+                    <div className="w-12 h-12 rounded-xl bg-[#7B2EFF]/20 border border-[#7B2EFF]/30 flex items-center justify-center flex-shrink-0">
+                      <span className="text-[#7B2EFF] text-xs font-bold uppercase">
+                        {(se.event.category || 'EVT').slice(0, 3)}
+                      </span>
                     </div>
                     <div className="flex-1 min-w-0">
                       <h3 className="text-white font-bold text-sm line-clamp-1">{se.event.title}</h3>
@@ -188,7 +219,7 @@ export default function ProfilePage() {
         )}
 
         {tab === 'Crew' && (
-          <EmptyTab icon="👥" title="Crew coming soon" sub="Invite your friends to see what they're going to" />
+          <EmptyTab title="Crew coming soon" sub="Invite your friends to see what they're going to" />
         )}
       </div>
 
@@ -207,36 +238,14 @@ export default function ProfilePage() {
   )
 }
 
-function TicketRow({ ticket }: { ticket: Ticket }) {
-  const event = ticket.event as any
-  return (
-    <Link href={`/tickets`} className="block">
-      <div className="flex items-center gap-4 p-4 rounded-2xl bg-[#1A1A1A] border border-[#2A2A2A] active:scale-95 transition-transform">
-        <div className="w-1 h-14 rounded-full bg-[#7B2EFF] flex-shrink-0" />
-        <div className="flex-1 min-w-0">
-          <h3 className="text-white font-bold text-sm line-clamp-1">{event?.title || 'Event'}</h3>
-          <p className="text-gray-500 text-xs mt-0.5">{event?.venue_name} · {ticket.tier}</p>
-          <div className="flex items-center gap-2 mt-1">
-            {event?.starts_at && (
-              <span className="text-gray-600 text-xs">{format(new Date(event.starts_at), 'EEE, MMM d')}</span>
-            )}
-            <span className={`text-xs font-semibold ${ticket.status === 'active' ? 'text-[#A3FF12]' : 'text-gray-600'}`}>
-              {ticket.status === 'active' ? '● Active' : '✓ Used'}
-            </span>
-          </div>
-        </div>
-        <div className="text-right">
-          <p className="text-white font-bold text-sm">${(ticket.price_paid / 100).toFixed(0)}</p>
-        </div>
-      </div>
-    </Link>
-  )
-}
-
-function EmptyTab({ icon, title, sub }: { icon: string; title: string; sub: string }) {
+function EmptyTab({ title, sub }: { title: string; sub: string }) {
   return (
     <div className="text-center py-12">
-      <div className="text-4xl mb-3">{icon}</div>
+      <svg className="mx-auto mb-3" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#A3FF12" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="12" r="10"/>
+        <line x1="12" y1="8" x2="12" y2="13"/>
+        <circle cx="12" cy="16.5" r="0.5" fill="#A3FF12"/>
+      </svg>
       <p className="text-white font-bold">{title}</p>
       <p className="text-gray-500 text-sm mt-1">{sub}</p>
     </div>
