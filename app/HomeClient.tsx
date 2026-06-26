@@ -87,6 +87,14 @@ activeCategory?: string
 
 export default function HomeClient({ events: initialEvents }: Props) {
 const router = useRouter()
+const { user } = useAuth()
+const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
+useEffect(() => {
+if (!user) return
+const supabase = createClient()
+supabase.from('users').select('avatar_url').eq('id', user.id).single()
+.then(({ data }) => { if (data?.avatar_url) setAvatarUrl(data.avatar_url) })
+}, [user])
 const [activeCategory, setActiveCategory] = useState('all')
 const [activeGenre, setActiveGenre] = useState<string | null>(null)
 const [showGenres, setShowGenres] = useState(false)
