@@ -17,8 +17,23 @@ const tabs = [
     href: '/explore',
     label: 'Explore',
     icon: (active: boolean) => (
-      <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke={active ? '#7B2EFF' : '#666'} strokeWidth={2}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={active ? '#A3FF12' : '#666'} strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+        {/* Hanging wire */}
+        <line x1="12" y1="1" x2="12" y2="4" strokeWidth={2} />
+        {/* Ball */}
+        <circle cx="12" cy="13" r="8" />
+        {/* Latitude lines */}
+        <path d="M4.5 10 C7.5 8.5 16.5 8.5 19.5 10" />
+        <path d="M4.2 13 C7.5 11.5 16.5 11.5 19.8 13" />
+        <path d="M4.5 16 C7.5 17.5 16.5 17.5 19.5 16" />
+        {/* Longitude lines */}
+        <path d="M12 5 C10.5 8 10.5 18 12 21" />
+        <path d="M8 6.5 C7 9 7 17 8 19.5" />
+        <path d="M16 6.5 C17 9 17 17 16 19.5" />
+        {/* Sparkle */}
+        <line x1="22" y1="4" x2="23" y2="3" strokeWidth={2} />
+        <line x1="22" y1="4" x2="23" y2="5" strokeWidth={2} />
+        <line x1="22" y1="4" x2="24" y2="4" strokeWidth={2} />
       </svg>
     ),
   },
