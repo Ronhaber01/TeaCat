@@ -1,10 +1,13 @@
 'use client'
 
+export const dynamic = 'force-dynamic'
+
 import { useState, useRef, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase-browser'
 import OnboardingFlow from '@/components/OnboardingFlow'
+import { identifyUser } from '@/lib/onesignal'
 
 export default function VerifyPage() {
   const [code, setCode] = useState(['', '', '', '', '', ''])
@@ -56,7 +59,7 @@ export default function VerifyPage() {
     setError('')
     const supabase = createClient()
 
-    const { error } = await supabase.auth.verifyOtp({
+    const { data, error } = await supabase.auth.verifyOtp({
       email,
       token,
       type: 'email',
@@ -70,8 +73,13 @@ export default function VerifyPage() {
       return
     }
 
-    // Show onboarding on first login; skip for returning users
-    const onboarded = typeof window !== 'undefined' && localStorage.getItem('teacat_onboarded') === 'true'
+    // Identify user in OneSignal
+    if (data?.user) {
+      identifyUser(data.user.id, data.user.email)
+    }
+
+    // Show onboarding for first-time users
+    const onboarded = localStorage.getItem('teacat_onboarded')
     if (!onboarded) {
       setShowOnboarding(true)
     } else {
@@ -86,7 +94,7 @@ export default function VerifyPage() {
     router.refresh()
   }
 
-  const resend = async () => {
+  const resendCode = async () => {
     const supabase = createClient()
     await supabase.auth.signInWithOtp({ email, options: { shouldCreateUser: true } })
     setResent(true)
@@ -121,7 +129,9 @@ export default function VerifyPage() {
             value={digit}
             onChange={(e) => handleChange(i, e.target.value)}
             onKeyDown={(e) => handleKeyDown(i, e)}
-            className={'w-12 h-14 text-center text-2xl font-black rounded-2xl border bg-[#1A1A1A] text-white focus:outline-none transition-all ' + (digit ? 'border-[#7B2EFF]' : 'border-[#2A2A2A]') + (loading ? ' opacity-50' : '')}
+            className={`w-12 h-14 text-center text-2xl font-black rounded-2xl border bg-[#1A1A1A] text-white focus:outline-none transition-all ${
+              digit ? 'border-[#7B2EFF]' : 'border-[#2A2A2A]'
+            } ${loading ? 'opacity-50' : ''}`}
             disabled={loading}
           />
         ))}
@@ -137,7 +147,7 @@ export default function VerifyPage() {
       )}
 
       <button
-        onClick={resend}
+        onClick={resendCode}
         disabled={resent}
         className="text-gray-600 text-sm mt-4 active:text-[#7B2EFF] transition-colors disabled:opacity-50"
       >
