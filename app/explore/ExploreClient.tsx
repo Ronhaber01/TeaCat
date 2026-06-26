@@ -28,6 +28,8 @@ export default function ExploreClient({ events }: Props) {
 const router = useRouter()
 const [openDrawerId, setOpenDrawerId] = useState<string | null>(null)
 const [drawerEvent, setDrawerEvent] = useState<Event | null>(null)
+const [shareCopied, setShareCopied] = useState(false)
+const [shareCopied, setShareCopied] = useState(false)
 const scrollRef = useRef<HTMLDivElement>(null)
 
 useEffect(() => {
@@ -46,6 +48,30 @@ return () => el.removeEventListener('scroll', onScroll)
 }, [])
 
 const shareUrl = (id: string) => 'https://teacat.nyc/events/' + id
+
+const handleShareCurrent = async () => {
+const url = openDrawerId ? shareUrl(openDrawerId) : 'https://teacat.nyc/explore'
+const title = openDrawerId ? (events.find(e => e.id === openDrawerId)?.title || 'Check this out') : 'TeaCat – NYC nightlife'
+if (typeof navigator !== 'undefined' && navigator.share) {
+navigator.share({ title, url }).catch(() => {})
+} else {
+navigator.clipboard.writeText(url).catch(() => {})
+setShareCopied(true)
+setTimeout(() => setShareCopied(false), 2000)
+}
+}
+
+const handleShareCurrent = async () => {
+const url = openDrawerId ? shareUrl(openDrawerId) : 'https://teacat.nyc/explore'
+const title = openDrawerId ? (events.find(e => e.id === openDrawerId)?.title || 'Check this out') : 'TeaCat – NYC nightlife'
+if (typeof navigator !== 'undefined' && navigator.share) {
+navigator.share({ title, url }).catch(() => {})
+} else {
+navigator.clipboard.writeText(url).catch(() => {})
+setShareCopied(true)
+setTimeout(() => setShareCopied(false), 2000)
+}
+}
 
 const refresh = useCallback(async () => {
 router.refresh()
@@ -74,6 +100,34 @@ const drawerOpen = openDrawerId !== null
 return (
 <div className="relative">
 <PullIndicator {...ptr} />
+<button
+onClick={handleShareCurrent}
+className="fixed top-14 right-4 z-10 w-10 h-10 rounded-full flex items-center justify-center active:scale-90 transition-transform"
+style={{ background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(8px)' }}
+>
+{shareCopied ? (
+<span className="text-[#A3FF12] text-[9px] font-bold leading-none text-center">Copied!</span>
+) : (
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#A3FF12" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+<circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+<line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+</svg>
+)}
+</button>
+<button
+onClick={handleShareCurrent}
+className="fixed top-14 right-4 z-10 w-10 h-10 rounded-full flex items-center justify-center active:scale-90 transition-transform"
+style={{ background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(8px)' }}
+>
+{shareCopied ? (
+<span className="text-[#A3FF12] text-[9px] font-bold">Copied!</span>
+) : (
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#A3FF12" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+<circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+<line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+</svg>
+)}
+</button>
 <div
 ref={scrollRef}
 style={{ height: '100svh', overflowY: 'scroll', scrollSnapType: 'y mandatory' }}
