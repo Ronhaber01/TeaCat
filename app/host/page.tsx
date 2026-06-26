@@ -167,6 +167,7 @@ style={{ width: `${soldPct}%` }}
 )}
 </div>
 </Link>
+<BottomNav />
 )
 }
 
@@ -181,6 +182,7 @@ List events, keep 100% of ticket revenue, and reach NYC&apos;s nightlife communi
 <Link href="/host/setup" className="btn-primary block text-center">
 Set up host profile \u2192
 </Link>
+<BottomNav />
 </div>
 )
 }
