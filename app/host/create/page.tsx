@@ -316,7 +316,7 @@ function Step3({ form, set, onBack, onSaveDraft, onPublish, loading, error }: an
         </button>
       </div>
       <button onClick={onPublish} disabled={loading} className='btn-primary'>
-        {loading ? 'Publishing...' : '🚀 Publish Event'}
+        {loading ? 'Publishing...' : 'Publish Event'}
       </button>
 
       <p className='text-gray-700 text-xs text-center'>0% platform fee · You keep 100% of revenue</p>
