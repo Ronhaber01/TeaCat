@@ -117,6 +117,7 @@ className="flex items-center justify-center gap-2 w-full py-4 rounded-2xl bg-[#1
 </div>
 )}
 </div>
+<BottomNav />
 </div>
 )
 }
@@ -167,7 +168,6 @@ style={{ width: `${soldPct}%` }}
 )}
 </div>
 </Link>
-<BottomNav />
 )
 }
 
