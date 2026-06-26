@@ -66,36 +66,58 @@ export default function ExploreClient({ events }: Props) {
                 <div className="absolute inset-0 bg-gradient-to-br from-[#7B2EFF]/60 to-[#111111]" />
               )}
 
-              {/* Dark gradient overlay */}
+              {/* Dark gradient overlay — heavier at bottom */}
               <div
                 className="absolute inset-0"
-                style={{ background: 'linear-gradient(to bottom, transparent 30%, rgba(0,0,0,0.88) 100%)' }}
+                style={{ background: 'linear-gradient(to bottom, transparent 20%, rgba(0,0,0,0.5) 55%, rgba(0,0,0,0.92) 100%)' }}
               />
 
-              {/* Event info at bottom */}
-              <div className="absolute bottom-0 left-0 right-0 px-5 pb-28">
-                {event.category && (
-                  <span className="inline-block bg-[#7B2EFF]/40 border border-[#7B2EFF]/60 text-[#A3FF12] text-xs font-bold px-3 py-1 rounded-full mb-3 uppercase tracking-wider">
-                    {event.category}
-                  </span>
-                )}
-                <h2 className="text-white font-black text-2xl leading-tight mb-1">{event.title}</h2>
-                {event.venue_name && (
-                  <p className="text-gray-300 text-sm mb-0.5">
-                    {event.venue_name}{event.neighborhood ? ` · ${event.neighborhood}` : ''}
+              {/* ── Floating info label — sits in the middle of the card ── */}
+              <div
+                className="absolute left-4 right-4"
+                style={{ bottom: '140px' }}
+              >
+                <div
+                  className="rounded-2xl px-4 py-3 border border-white/10"
+                  style={{
+                    background: 'rgba(10, 10, 10, 0.72)',
+                    backdropFilter: 'blur(12px)',
+                    WebkitBackdropFilter: 'blur(12px)',
+                  }}
+                >
+                  {event.category && (
+                    <span className="inline-block bg-[#7B2EFF]/50 text-[#A3FF12] text-[10px] font-bold px-2 py-0.5 rounded-full mb-2 uppercase tracking-wider">
+                      {event.category}
+                    </span>
+                  )}
+                  <h2 className="text-white font-black text-xl leading-tight mb-1">{event.title}</h2>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    {event.venue_name && (
+                      <span className="text-gray-300 text-xs">{event.venue_name}</span>
+                    )}
+                    {event.neighborhood && (
+                      <>
+                        <span className="text-gray-600 text-xs">·</span>
+                        <span className="text-gray-400 text-xs">{event.neighborhood}</span>
+                      </>
+                    )}
+                  </div>
+                  <p className="text-gray-400 text-xs mt-0.5">
+                    {format(new Date(event.starts_at), 'EEE, MMM d · h:mm a')}
                   </p>
-                )}
-                <p className="text-gray-300 text-sm mb-3">
-                  {format(new Date(event.starts_at), 'EEE, MMM d · h:mm a')}
-                </p>
+                </div>
+              </div>
+
+              {/* Bottom CTA */}
+              <div className="absolute bottom-0 left-0 right-0 px-5 pb-28">
                 <div className="flex items-center justify-between">
-                  <span className="text-[#A3FF12] font-bold text-lg">{price}</span>
+                  <span className="text-[#A3FF12] font-black text-2xl">{price}</span>
                   <Link
                     href={soldOut ? '#' : `/events/${event.id}/checkout`}
-                    className={`px-5 py-2.5 rounded-full text-sm font-bold transition-all active:scale-95 ${
+                    className={`px-6 py-3 rounded-full text-sm font-bold transition-all active:scale-95 ${
                       soldOut
                         ? 'bg-gray-700 text-gray-500 cursor-not-allowed'
-                        : 'bg-[#7B2EFF] text-white shadow-lg shadow-[#7B2EFF]/30'
+                        : 'bg-[#7B2EFF] text-white shadow-lg shadow-[#7B2EFF]/40'
                     }`}
                   >
                     {soldOut ? 'Sold Out' : 'Get Tickets'}
