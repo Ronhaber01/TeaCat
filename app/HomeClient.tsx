@@ -94,7 +94,7 @@ export default function HomeClient({ initialEvents }: Props) {
   const [activeCategory, setActiveCategory] = useState('all')
   const [activeGenre, setActiveGenre] = useState<string | null>(null)
   const [showGenres, setShowGenres] = useState(false)
-  const [events, setEvents] = useState<Event[]>(initialEvents)
+  const [events, setEvents] = useState<Event[]>(initialEvents ?? [])
 
   // Filter events
   const filtered = events.filter((e) => {
