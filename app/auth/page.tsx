@@ -36,7 +36,7 @@ function AuthContent() {
           <span className="text-[#7B2EFF] font-black text-4xl tracking-tight">Tea</span>
           <span className="text-[#A3FF12] font-black text-4xl tracking-tight">Cat</span>
         </Link>
-        <p className="text-gray-500 text-sm mt-2">Other apps sell tickets. TeaCat finds you tonight.</p>
+        <p className="text-gray-500 text-sm mt-2">Other platforms sell tickets. TeaCat finds your next adventure.</p>
       </div>
       <h1 className="text-white font-black text-3xl mb-2">Let's go</h1>
       <p className="text-gray-500 text-sm mb-8">Enter your email and we'll text you a code. No password.</p>
