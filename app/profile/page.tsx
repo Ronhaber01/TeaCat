@@ -28,6 +28,7 @@ const [copied, setCopied] = useState(false)
 const [publicUsername, setPublicUsername] = useState<string | null>(null)
 const [avatarPreview, setAvatarPreview] = useState<string | null>(null)
 const [uploading, setUploading] = useState(false)
+const [showCameraSheet, setShowCameraSheet] = useState(false)
 const [uploadError, setUploadError] = useState<string | null>(null)
 const [refreshKey, setRefreshKey] = useState(0)
 const fileInputRef = useRef<HTMLInputElement>(null)
@@ -201,7 +202,7 @@ return (
 <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin" />
 </div>
 )}
-<button onClick={() => fileInputRef.current?.click()} disabled={uploading} className="absolute bottom-0 right-0 w-6 h-6 rounded-full bg-[#7B2EFF] flex items-center justify-center" style={{ border: '2px solid #111111' }}>
+<button onClick={() => setShowCameraSheet(true)} disabled={uploading} className="absolute bottom-0 right-0 w-6 h-6 rounded-full bg-[#7B2EFF] flex items-center justify-center" style={{ border: '2px solid #111111' }}>
 <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
 </button>
 <input ref={fileInputRef} type="file" accept="image/*" capture="user" className="hidden" onChange={handleAvatarUpload} />
@@ -428,6 +429,21 @@ Sign out
 </button>
 </div>
 
+{showCameraSheet && (
+<div className="fixed inset-0 z-[60] flex flex-col justify-end" style={{ background: 'rgba(0,0,0,0.7)' }} onClick={() => setShowCameraSheet(false)}>
+<div className="rounded-t-3xl p-6 pb-10" style={{ background: '#1A1A1A' }} onClick={e => e.stopPropagation()}>
+<div className="w-10 h-1 rounded-full mx-auto mb-5" style={{ background: '#333' }}/>
+<p className="font-black text-lg mb-2 text-center" style={{ color: '#A3FF12' }}>You're in your prime</p>
+<p className="text-sm text-center mb-6 leading-relaxed" style={{ color: '#999' }}>We age like wine — show us where you're at right now, at your peak. This is your moment.</p>
+<button onClick={() => { setShowCameraSheet(false); fileInputRef.current?.click() }} className="w-full py-4 rounded-2xl font-black text-base text-white" style={{ background: '#7B2EFF' }}>
+Take the shot
+</button>
+<button onClick={() => setShowCameraSheet(false)} className="w-full py-3 mt-2 text-sm" style={{ color: '#666' }}>
+Maybe later
+</button>
+</div>
+</div>
+)}
 <BottomNav />
 </div>
 )
