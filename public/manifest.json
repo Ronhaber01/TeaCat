@@ -1,7 +1,7 @@
 {
   "name": "TeaCat",
   "short_name": "TeaCat",
-  "description": "Other apps sell tickets. TeaCat finds you tonight.",
+  "description": "Other platforms sell tickets. TeaCat finds your next adventure.",
   "start_url": "/",
   "display": "standalone",
   "orientation": "portrait",
