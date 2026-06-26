@@ -9,6 +9,8 @@ import SplashScreen from '@/components/SplashScreen'
 import BottomNav from '@/components/BottomNav'
 import { CATEGORIES, GENRES } from '@/lib/types'
 import type { Event } from '@/lib/types'
+import { useAuth } from '@/components/AuthProvider'
+import { createClient } from '@/lib/supabase-browser'
 
 // ─── SVG icons for each category pill ────────────────────────────────────────
 function getCategoryIcon(value: string, size = 14) {
@@ -139,11 +141,15 @@ return (
 <h1 className="text-white font-black text-2xl leading-tight">What's happening</h1>
 <p className="text-gray-500 text-sm">New York City</p>
 </div>
-<Link href="/profile" className="w-9 h-9 rounded-full bg-gradient-to-br from-[#7B2EFF] to-[#A3FF12] flex items-center justify-center">
+<Link href="/profile" className="w-9 h-9 rounded-full overflow-hidden bg-gradient-to-br from-[#7B2EFF] to-[#A3FF12] flex items-center justify-center flex-shrink-0">
+{avatarUrl ? (
+<img src={avatarUrl} alt="Profile" className="w-full h-full object-cover" />
+) : (
 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#111" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
 <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
 <circle cx="12" cy="7" r="4"/>
 </svg>
+)}
 </Link>
 </div>
 </div>
