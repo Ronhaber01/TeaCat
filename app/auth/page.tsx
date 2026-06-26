@@ -35,13 +35,11 @@ export default function AuthPage() {
       return
     }
 
-    // Pass email + redirect to verify page
     router.push(`/auth/verify?email=${encodeURIComponent(email)}&redirect=${encodeURIComponent(redirect)}`)
   }
 
   return (
     <div className="min-h-screen bg-[#111111] flex flex-col px-5 pt-20 pb-10">
-      {/* Logo */}
       <div className="mb-12">
         <Link href="/" className="flex items-center gap-1">
           <span className="text-[#7B2EFF] font-black text-4xl tracking-tight">Tea</span>
@@ -50,7 +48,7 @@ export default function AuthPage() {
         <p className="text-gray-500 text-sm mt-2">Other apps sell tickets. TeaCat finds you tonight.</p>
       </div>
 
-      <h1 className="text-white font-black text-3xl mb-2">Let's go 🌃</h1>
+      <h1 className="text-white font-black text-3xl mb-2">Let's go</h1>
       <p className="text-gray-500 text-sm mb-8">Enter your email and we'll text you a code. No password.</p>
 
       <form onSubmit={handleSubmit} className="flex flex-col gap-4">
@@ -76,7 +74,7 @@ export default function AuthPage() {
           disabled={loading || !email.trim()}
           className="btn-primary disabled:opacity-40 disabled:cursor-not-allowed"
         >
-          {loading ? 'Sending code...' : 'Get my code →'}
+          {loading ? 'Sending code...' : 'Get my code'}
         </button>
       </form>
 
