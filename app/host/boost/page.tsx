@@ -18,7 +18,9 @@ export default function BoostPage() {
         </svg>
       </Link>
 
-      <div className="text-5xl mb-6">🚀</div>
+      <svg className="mx-auto mb-6" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#A3FF12" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+        <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+      </svg>
       <h1 className="text-white font-black text-3xl mb-2">Event Boost</h1>
       <p className="text-gray-400 text-sm mb-8 leading-relaxed">
         Boost your event to the top of the feed and reach more people in NYC. Spend $20 and get $15 back in credits toward your next boost.
@@ -49,7 +51,7 @@ export default function BoostPage() {
       </div>
 
       <div className="bg-[#7B2EFF]/10 border border-[#7B2EFF]/30 rounded-2xl p-4 mb-8">
-        <p className="text-[#7B2EFF] font-bold text-sm mb-1">💡 Boost credits</p>
+        <p className="text-[#7B2EFF] font-bold text-sm mb-1">Boost credits</p>
         <p className="text-gray-400 text-xs leading-relaxed">Every $20 you spend on boosts earns you $15 in credits. Credits can be used for future boosts.</p>
       </div>
 
