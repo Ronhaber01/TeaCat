@@ -3,6 +3,7 @@ import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { format } from 'date-fns'
 import type { Event, Host } from '@/lib/types'
+import BottomNav from '@/components/BottomNav'
 
 export default async function HostDashboard() {
 const supabase = createClient()
@@ -32,7 +33,7 @@ const past = allEvents.filter((e) => new Date(e.starts_at) <= new Date() || e.is
 const totalTickets = allEvents.reduce((sum, e) => sum + e.tickets_sold, 0)
 
 return (
-<div className="min-h-screen bg-[#111111] pb-10">
+<div className="min-h-screen bg-[#111111] pb-28">
 {/* Header */}
 <div className="px-5 pt-14 pb-6">
 <div className="flex items-center justify-between mb-2">
@@ -171,7 +172,7 @@ style={{ width: `${soldPct}%` }}
 
 function HostSetup({ userId }: { userId: string }) {
 return (
-<div className="min-h-screen bg-[#111111] px-5 pt-20 pb-10">
+<div className="min-h-screen bg-[#111111] px-5 pt-20 pb-28">
 <div className="text-5xl mb-6">\uD83C\uDFAA</div>
 <h1 className="text-white font-black text-3xl mb-2">Become a host</h1>
 <p className="text-gray-400 text-sm mb-8 leading-relaxed">
