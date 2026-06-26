@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import EventCard from '@/components/EventCard'
 import BottomNav from '@/components/BottomNav'
+import SplashScreen from '@/components/SplashScreen'
 import type { Event } from '@/lib/types'
 import { CATEGORIES } from '@/lib/types'
 
@@ -35,16 +36,19 @@ function getCategoryIcon(value: string) {
   switch (value) {
     case 'club':
       return (
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#7B2EFF" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-          <circle cx="12" cy="4" r="2"/>
-          <path d="M8 9l4 3 4-3"/>
-          <line x1="12" y1="12" x2="12" y2="17"/>
-          <path d="M12 17l-3 5m3-5l3 5"/>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#A3FF12" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+          {/* Saturday Night Fever dancer */}
+          <circle cx="14" cy="4" r="2"/>
+          <line x1="13" y1="7" x2="19" y2="2"/>
+          <line x1="12" y1="9" x2="7" y2="12"/>
+          <path d="M13 6 L12 14"/>
+          <line x1="12" y1="14" x2="14" y2="21"/>
+          <line x1="12" y1="14" x2="5" y2="19"/>
         </svg>
       )
     case 'house':
       return (
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#7B2EFF" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#A3FF12" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
           <path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
         </svg>
       )
@@ -57,19 +61,24 @@ function getCategoryIcon(value: string) {
     case 'rave':
       return (
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#A3FF12" strokeWidth={2} strokeLinecap="round">
-          <path d="M12 12 a1 1 0 1 1 2 0 a3 3 0 1 0 -6 0 a5 5 0 1 1 10 0 a7 7 0 1 0 -14 0"/>
+          {/* Audio waveform equalizer */}
+          <line x1="4" y1="10" x2="4" y2="14"/>
+          <line x1="8" y1="7" x2="8" y2="17"/>
+          <line x1="12" y1="4" x2="12" y2="20"/>
+          <line x1="16" y1="7" x2="16" y2="17"/>
+          <line x1="20" y1="10" x2="20" y2="14"/>
         </svg>
       )
     case 'live':
       return (
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#7B2EFF" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#A3FF12" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
           <path d="M9 18a4 4 0 0 0 6-5.5L19 8a2 2 0 0 0-3-3L11.5 9.5A4 4 0 1 0 9 18z"/>
-          <circle cx="9" cy="18" r="1" fill="#7B2EFF" stroke="none"/>
+          <circle cx="9" cy="18" r="1" fill="#A3FF12" stroke="none"/>
         </svg>
       )
     case 'date':
       return (
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#7B2EFF" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#A3FF12" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
           <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
         </svg>
       )
@@ -82,7 +91,7 @@ function getCategoryIcon(value: string) {
       )
     case 'bar':
       return (
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#7B2EFF" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#A3FF12" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
           <line x1="8" y1="22" x2="16" y2="22"/>
           <line x1="12" y1="11" x2="12" y2="22"/>
           <path d="M3 3l18 0L12 11 3 3z"/>
@@ -111,6 +120,8 @@ export default function HomeClient({ events, featured, upcoming, activeCategory 
 
   return (
     <div className="min-h-screen bg-[#111111] pb-28">
+      <SplashScreen />
+
       {/* Header */}
       <header className="px-5 pt-14 pb-4">
         <div className="flex items-center justify-between mb-1">
@@ -119,13 +130,11 @@ export default function HomeClient({ events, featured, upcoming, activeCategory 
             <p className="text-gray-500 text-sm mt-0.5" suppressHydrationWarning>{getSubGreeting()}</p>
           </div>
           <div className="flex items-center gap-3">
-            {/* Notification bell */}
             <button className="w-10 h-10 rounded-full bg-[#1A1A1A] border border-[#2A2A2A] flex items-center justify-center active:scale-90 transition-transform">
               <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#fff" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
               </svg>
             </button>
-            {/* Logo pill */}
             <Link href="/" className="flex items-center gap-1">
               <span className="text-[#7B2EFF] font-black text-lg tracking-tight">Tea</span>
               <span className="text-[#A3FF12] font-black text-lg tracking-tight">Cat</span>
@@ -190,7 +199,7 @@ export default function HomeClient({ events, featured, upcoming, activeCategory 
         )}
       </section>
 
-      {/* Boost CTA for hosts */}
+      {/* Boost CTA */}
       <div className="mx-5 mt-8 p-4 rounded-2xl bg-gradient-to-r from-[#7B2EFF]/20 to-[#A3FF12]/10 border border-[#7B2EFF]/30">
         <p className="text-white font-bold text-sm mb-1 flex items-center gap-1.5">
           You host events?
