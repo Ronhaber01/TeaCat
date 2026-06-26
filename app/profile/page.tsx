@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
@@ -25,6 +25,10 @@ export default function ProfilePage() {
   const [hostedEvents, setHostedEvents] = useState<Event[]>([])
   const [loading, setLoading] = useState(true)
 const [copied, setCopied] = useState(false)
+const [publicUsername, setPublicUsername] = useState<string | null>(null)
+const [avatarPreview, setAvatarPreview] = useState<string | null>(null)
+const [uploading, setUploading] = useState(false)
+const fileInputRef = useRef<HTMLInputElement>(null)
   const supabase = createClient()
 
   useEffect(() => {
@@ -64,7 +68,41 @@ const [copied, setCopied] = useState(false)
     fetchData()
   }, [user])
 
-  const handleSignOut = async () => {
+  // Read public profile param from URL
+useEffect(() => {
+if (typeof window !== 'undefined') {
+const params = new URLSearchParams(window.location.search)
+setPublicUsername(params.get('u'))
+}
+}, [])
+
+const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+const file = e.target.files?.[0]
+if (!file || !user) return
+setUploading(true)
+const canvas = document.createElement('canvas')
+const ctx = canvas.getContext('2d')!
+const img = new Image()
+const blobUrl = URL.createObjectURL(file)
+img.src = blobUrl
+await new Promise<void>(resolve => { img.onload = () => resolve() })
+const s = Math.min(img.width, img.height)
+canvas.width = 500; canvas.height = 500
+ctx.drawImage(img, (img.width - s) / 2, (img.height - s) / 2, s, s, 0, 0, 500, 500)
+URL.revokeObjectURL(blobUrl)
+const blob = await new Promise<Blob>(r => canvas.toBlob(b => r(b!), 'image/jpeg', 0.85))
+setAvatarPreview(URL.createObjectURL(blob))
+const path = `${user.id}/avatar.jpg`
+const { error } = await supabase.storage.from('avatars').upload(path, blob, { upsert: true, contentType: 'image/jpeg' })
+if (!error) {
+const { data: { publicUrl } } = supabase.storage.from('avatars').getPublicUrl(path)
+await supabase.from('users').update({ avatar_url: publicUrl }).eq('id', user.id)
+setProfile(prev => prev ? { ...prev, avatar_url: publicUrl } as any : prev)
+}
+setUploading(false)
+}
+
+const handleSignOut = async () => {
     await signOut()
     router.push('/')
     router.refresh()
@@ -77,7 +115,9 @@ const [copied, setCopied] = useState(false)
       </div>
     )
   }
-  if (!user) return null
+  if (publicUsername) return <PublicProfile username={publicUsername} supabase={supabase} />
+
+if (!user) return null
 
   const handleShare = async () => {
     const url = profile?.username ? `https://teacat.nyc/profile/${profile.username}` : 'https://teacat.nyc/profile'
@@ -107,9 +147,17 @@ const [copied, setCopied] = useState(false)
       <div className="px-5 pt-14 pb-4">
         <div className="flex items-start justify-between mb-4">
           <div className="flex items-center gap-4">
-            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-[#7B2EFF] to-[#A3FF12] flex items-center justify-center text-2xl font-black text-white flex-shrink-0">
-              {initials}
-            </div>
+            <div className="relative flex-shrink-0">
+{avatarPreview || (profile as any)?.avatar_url ? (
+<img src={avatarPreview || (profile as any)?.avatar_url} alt={displayName} className="w-[72px] h-[72px] rounded-full object-cover" style={{ border: '2px solid #2A2A2A' }} />
+) : (
+<div className="w-[72px] h-[72px] rounded-full bg-[#1A1A1A] flex items-center justify-center text-2xl font-black" style={{ color: '#A3FF12', border: '2px solid #2A2A2A' }}>{initials}</div>
+)}
+<button onClick={() => fileInputRef.current?.click()} disabled={uploading} className="absolute bottom-0 right-0 w-6 h-6 rounded-full bg-[#7B2EFF] flex items-center justify-center" style={{ border: '2px solid #111111' }}>
+{uploading ? <div className="w-2.5 h-2.5 border border-white border-t-transparent rounded-full animate-spin" /> : <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>}
+</button>
+<input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
+</div>
             <div>
               <h1 className="text-white font-black text-xl leading-tight">{displayName}</h1>
               {profile?.username && <p className="text-gray-500 text-sm">@{profile.username}</p>}
@@ -365,4 +413,108 @@ function EmptyTab({ title, sub }: { title: string; sub: string }) {
       <p className="text-gray-500 text-sm mt-1">{sub}</p>
     </div>
   )
+}
+
+
+// ─── Public Profile View ──────────────────────────────────────────────────────
+function PublicProfile({ username, supabase }: { username: string; supabase: any }) {
+const [pub, setPub] = useState<any>(null)
+const [events, setEvents] = useState<any[]>([])
+const [loading, setLoading] = useState(true)
+const [isPrivate, setIsPrivate] = useState(false)
+
+useEffect(() => {
+const fetchPublic = async () => {
+const { data: u } = await supabase
+.from('users')
+.select('id, full_name, username, avatar_url, bio, neighborhood, hide_from_attendee_list')
+.eq('username', username)
+.single()
+
+if (!u || u.hide_from_attendee_list) { setIsPrivate(true); setLoading(false); return }
+setPub(u)
+
+const { data: rows } = await supabase
+.from('tickets')
+.select('event:events(id, title, starts_at, flyer_url, venue_name)')
+.eq('user_id', u.id)
+.in('status', ['active', 'used'])
+.order('created_at', { ascending: false })
+.limit(20)
+
+if (rows) setEvents(rows.map((r: any) => r.event).filter(Boolean))
+setLoading(false)
+}
+fetchPublic()
+}, [username])
+
+if (loading) return (
+<div className="min-h-screen bg-[#111111] flex items-center justify-center">
+<div className="w-8 h-8 border-2 border-[#7B2EFF] border-t-transparent rounded-full animate-spin" />
+</div>
+)
+
+if (isPrivate || !pub) return (
+<div className="min-h-screen bg-[#111111] flex flex-col items-center justify-center px-5 gap-4">
+<div className="w-16 h-16 rounded-full bg-[#1A1A1A] border border-[#2A2A2A] flex items-center justify-center">
+<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#555" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+<rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+</svg>
+</div>
+<p className="text-white font-bold text-lg">This profile is private</p>
+<p className="text-gray-500 text-sm text-center">This user has chosen to keep their profile private</p>
+<Link href="/" className="text-[#A3FF12] text-sm font-semibold mt-2">Back home</Link>
+</div>
+)
+
+const name = pub.full_name || pub.username || 'User'
+return (
+<div className="min-h-screen bg-[#111111] pb-28">
+<div className="px-5 pt-14 pb-6">
+<Link href="/" className="flex items-center gap-2 text-gray-500 text-sm mb-6">
+<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round"><path d="M15 19l-7-7 7-7"/></svg>
+Back
+</Link>
+<div className="flex items-center gap-4 mb-4">
+{pub.avatar_url ? (
+<img src={pub.avatar_url} alt={name} className="w-[72px] h-[72px] rounded-full object-cover flex-shrink-0" style={{ border: '2px solid #2A2A2A' }} />
+) : (
+<div className="w-[72px] h-[72px] rounded-full bg-[#1A1A1A] flex items-center justify-center text-2xl font-black flex-shrink-0" style={{ color: '#A3FF12', border: '2px solid #2A2A2A' }}>
+{name[0].toUpperCase()}
+</div>
+)}
+<div>
+<h1 className="text-white font-black text-xl">{name}</h1>
+{pub.username && <p className="text-gray-500 text-sm">@{pub.username}</p>}
+{pub.neighborhood && <p className="text-gray-600 text-xs mt-0.5">{pub.neighborhood}</p>}
+</div>
+</div>
+{pub.bio && <p className="text-gray-400 text-sm mb-6">{pub.bio}</p>}
+{events.length > 0 && (
+<>
+<p className="text-gray-500 text-xs font-semibold uppercase tracking-wider mb-3">Events attended</p>
+<div className="grid grid-cols-2 gap-3">
+{events.map((ev: any) => (
+<Link key={ev.id} href={`/events/${ev.id}`} className="block">
+<div className="rounded-2xl overflow-hidden bg-[#1A1A1A] border border-[#2A2A2A] relative" style={{ aspectRatio: '1' }}>
+{ev.flyer_url ? (
+<img src={ev.flyer_url} alt={ev.title} className="w-full h-full object-cover" />
+) : (
+<div className="absolute inset-0 flex items-center justify-center p-3 bg-gradient-to-br from-[#7B2EFF]/20 to-transparent">
+<p className="text-white font-bold text-xs text-center">{ev.title}</p>
+</div>
+)}
+<div className="absolute bottom-0 left-0 right-0 px-2 py-1.5 bg-black/60">
+<p className="text-white text-xs font-semibold line-clamp-1">{ev.title}</p>
+</div>
+</div>
+</Link>
+))}
+</div>
+</>
+)}
+</div>
+<BottomNav />
+</div>
+)
 }
