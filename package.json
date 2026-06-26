@@ -17,9 +17,9 @@
     "@stripe/stripe-js": "^3.3.0",
     "@stripe/react-stripe-js": "^2.7.0",
     "stripe": "^15.7.0",
-    "resend": "^3.2.0",
     "qrcode.react": "^3.1.0",
-    "date-fns": "^3.3.1"
+    "date-fns": "^3.3.1",
+    "@onesignal/onesignal-web-sdk": "^2.0.0"
   },
   "devDependencies": {
     "@types/node": "^20",
