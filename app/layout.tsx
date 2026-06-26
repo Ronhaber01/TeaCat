@@ -1,12 +1,12 @@
 import type { Metadata, Viewport } from 'next'
 import './globals.css'
 import { AuthProvider } from '@/components/AuthProvider'
-
-export const dynamic = 'force-dynamic'
+import OneSignalProvider from '@/components/OneSignalProvider'
 
 export const metadata: Metadata = {
   title: 'TeaCat — NYC Nightlife',
   description: 'Other apps sell tickets. TeaCat finds you tonight.',
+  manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',
@@ -19,7 +19,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   userScalable: false,
-  themeColor: '#111111',
+  themeColor: '#7B2EFF',
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -27,7 +27,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <body className="bg-[#111111] text-white" style={{ maxWidth: 430, margin: '0 auto' }}>
         <AuthProvider>
-          {children}
+          <OneSignalProvider>
+            {children}
+          </OneSignalProvider>
         </AuthProvider>
       </body>
     </html>
