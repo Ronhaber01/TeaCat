@@ -1,11 +1,10 @@
 'use client'
 
-import { useState, useTransition } from 'react'
-import { useRouter } from 'next/navigation'
-import EventCard from '@/components/EventCard'
+import Link from 'next/link'
+import Image from 'next/image'
 import BottomNav from '@/components/BottomNav'
 import type { Event } from '@/lib/types'
-import { CATEGORIES, VIBES, SITUATIONS } from '@/lib/types'
+import { format } from 'date-fns'
 
 interface Props {
   events: Event[]
@@ -15,157 +14,97 @@ interface Props {
   activeSituation: string
 }
 
-export default function ExploreClient({
-  events,
-  initialQ,
-  activeCategory,
-  activeVibe,
-  activeSituation,
-}: Props) {
-  const router = useRouter()
-  const [, startTransition] = useTransition()
-  const [q, setQ] = useState(initialQ)
-
-  const updateFilters = (updates: Record<string, string>) => {
-    const params = new URLSearchParams()
-    const current = { q, category: activeCategory, vibe: activeVibe, situation: activeSituation, ...updates }
-    if (current.q) params.set('q', current.q)
-    if (current.category && current.category !== 'all') params.set('category', current.category)
-    if (current.vibe) params.set('vibe', current.vibe)
-    if (current.situation) params.set('situation', current.situation)
-    startTransition(() => router.push(`/explore?${params.toString()}`))
+export default function ExploreClient({ events }: Props) {
+  if (events.length === 0) {
+    return (
+      <div className="min-h-screen bg-[#111111] flex flex-col items-center justify-center pb-28">
+        <svg className="mb-4" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#A3FF12" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
+          <line x1="2" y1="20" x2="22" y2="20"/>
+          <path d="M3 20V11l5-5 4 4 5-6 5 7v9"/>
+          <path d="M9 20v-5h6v5"/>
+        </svg>
+        <p className="text-white font-bold text-lg">No events right now</p>
+        <p className="text-gray-500 text-sm mt-1">Check back soon</p>
+        <BottomNav />
+      </div>
+    )
   }
-
-  const handleSearch = (val: string) => {
-    setQ(val)
-    const params = new URLSearchParams()
-    if (val) params.set('q', val)
-    if (activeCategory !== 'all') params.set('category', activeCategory)
-    if (activeVibe) params.set('vibe', activeVibe)
-    if (activeSituation) params.set('situation', activeSituation)
-    startTransition(() => router.push(`/explore?${params.toString()}`))
-  }
-
-  const toggleFilter = (type: 'category' | 'vibe' | 'situation', value: string) => {
-    const map = { category: activeCategory, vibe: activeVibe, situation: activeSituation }
-    const current = map[type]
-    const next = current === value ? '' : value
-    if (type === 'category') {
-      updateFilters({ category: next || 'all' })
-    } else {
-      updateFilters({ [type]: next })
-    }
-  }
-
-  const hasFilters = activeCategory !== 'all' || activeVibe || activeSituation || q
 
   return (
-    <div className="min-h-screen bg-[#111111] pb-28">
-      {/* Header */}
-      <header className="px-5 pt-14 pb-4">
-        <h1 className="text-2xl font-black text-white mb-4">Explore NYC 🗽</h1>
+    <div className="relative">
+      <div
+        style={{
+          height: '100svh',
+          overflowY: 'scroll',
+          scrollSnapType: 'y mandatory',
+        }}
+      >
+        {events.map((event) => {
+          const soldOut = event.ticket_capacity !== null && event.tickets_sold >= (event.ticket_capacity ?? 0)
+          const price = event.is_free
+            ? 'Free'
+            : event.price_max
+            ? `$${event.price_min / 100} – $${event.price_max / 100}`
+            : `From $${event.price_min / 100}`
 
-        {/* Search */}
-        <div className="relative">
-          <svg className="absolute left-4 top-1/2 -translate-y-1/2" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="#666" strokeWidth={2}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-          </svg>
-          <input
-            type="text"
-            placeholder="Search events, venues, neighborhoods..."
-            value={q}
-            onChange={(e) => handleSearch(e.target.value)}
-            className="w-full bg-[#1A1A1A] border border-[#2A2A2A] rounded-2xl pl-11 pr-4 py-3.5 text-white placeholder-gray-600 text-sm focus:outline-none focus:border-[#7B2EFF] transition-colors"
-          />
-          {q && (
-            <button
-              onClick={() => handleSearch('')}
-              className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500"
+          return (
+            <div
+              key={event.id}
+              className="relative flex-shrink-0"
+              style={{ height: '100svh', scrollSnapAlign: 'start' }}
             >
-              ✕
-            </button>
-          )}
-        </div>
-      </header>
+              {/* Background flyer */}
+              {event.flyer_url ? (
+                <Image
+                  src={event.flyer_url}
+                  alt={event.title}
+                  fill
+                  className="object-cover"
+                  unoptimized
+                />
+              ) : (
+                <div className="absolute inset-0 bg-gradient-to-br from-[#7B2EFF]/60 to-[#111111]" />
+              )}
 
-      {/* Category pills */}
-      <div className="px-5 mb-4">
-        <div className="flex gap-2 overflow-x-auto pb-1">
-          {CATEGORIES.map((cat) => (
-            <button
-              key={cat.value}
-              onClick={() => toggleFilter('category', cat.value)}
-              className={`pill flex-shrink-0 ${activeCategory === cat.value ? 'pill-active' : 'pill-inactive'}`}
-            >
-              {cat.label}
-            </button>
-          ))}
-        </div>
-      </div>
+              {/* Dark gradient overlay */}
+              <div
+                className="absolute inset-0"
+                style={{ background: 'linear-gradient(to bottom, transparent 30%, rgba(0,0,0,0.88) 100%)' }}
+              />
 
-      {/* Vibe filters */}
-      <div className="px-5 mb-3">
-        <p className="text-gray-600 text-xs font-semibold uppercase tracking-wider mb-2">Vibe</p>
-        <div className="flex gap-2 overflow-x-auto pb-1">
-          {VIBES.map((v) => (
-            <button
-              key={v.value}
-              onClick={() => toggleFilter('vibe', v.value)}
-              className={`pill flex-shrink-0 text-xs ${activeVibe === v.value ? 'pill-active' : 'pill-inactive'}`}
-            >
-              {v.label}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Situation filters */}
-      <div className="px-5 mb-6">
-        <p className="text-gray-600 text-xs font-semibold uppercase tracking-wider mb-2">Going as</p>
-        <div className="flex gap-2">
-          {SITUATIONS.map((s) => (
-            <button
-              key={s.value}
-              onClick={() => toggleFilter('situation', s.value)}
-              className={`pill flex-shrink-0 text-xs ${activeSituation === s.value ? 'pill-active' : 'pill-inactive'}`}
-            >
-              {s.label}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Clear filters */}
-      {hasFilters && (
-        <div className="px-5 mb-4">
-          <button
-            onClick={() => { setQ(''); router.push('/explore') }}
-            className="text-[#7B2EFF] text-sm font-semibold"
-          >
-            ✕ Clear all filters
-          </button>
-        </div>
-      )}
-
-      {/* Results */}
-      <div className="px-5">
-        <p className="text-gray-600 text-xs font-semibold uppercase tracking-wider mb-4">
-          {events.length} {events.length === 1 ? 'event' : 'events'} found
-        </p>
-
-        {events.length === 0 ? (
-          <div className="text-center py-16">
-            <div className="text-5xl mb-4">🔍</div>
-            <p className="text-white font-bold text-lg">No events found</p>
-            <p className="text-gray-500 text-sm mt-1">Try different filters or check back later</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 gap-3">
-            {events.map((event) => (
-              <EventCard key={event.id} event={event} variant="grid" />
-            ))}
-          </div>
-        )}
+              {/* Event info at bottom */}
+              <div className="absolute bottom-0 left-0 right-0 px-5 pb-28">
+                {event.category && (
+                  <span className="inline-block bg-[#7B2EFF]/40 border border-[#7B2EFF]/60 text-[#A3FF12] text-xs font-bold px-3 py-1 rounded-full mb-3 uppercase tracking-wider">
+                    {event.category}
+                  </span>
+                )}
+                <h2 className="text-white font-black text-2xl leading-tight mb-1">{event.title}</h2>
+                {event.venue_name && (
+                  <p className="text-gray-300 text-sm mb-0.5">
+                    {event.venue_name}{event.neighborhood ? ` · ${event.neighborhood}` : ''}
+                  </p>
+                )}
+                <p className="text-gray-300 text-sm mb-3">
+                  {format(new Date(event.starts_at), 'EEE, MMM d · h:mm a')}
+                </p>
+                <div className="flex items-center justify-between">
+                  <span className="text-[#A3FF12] font-bold text-lg">{price}</span>
+                  <Link
+                    href={soldOut ? '#' : `/events/${event.id}/checkout`}
+                    className={`px-5 py-2.5 rounded-full text-sm font-bold transition-all active:scale-95 ${
+                      soldOut
+                        ? 'bg-gray-700 text-gray-500 cursor-not-allowed'
+                        : 'bg-[#7B2EFF] text-white shadow-lg shadow-[#7B2EFF]/30'
+                    }`}
+                  >
+                    {soldOut ? 'Sold Out' : 'Get Tickets'}
+                  </Link>
+                </div>
+              </div>
+            </div>
+          )
+        })}
       </div>
 
       <BottomNav />
