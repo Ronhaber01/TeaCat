@@ -136,7 +136,7 @@ export default async function EventPage({ params }: { params: { id: string } }) 
             <p className="text-gray-400 text-sm leading-relaxed">{e.description}</p>
           </div>
         )}
-        <AttendeeSection attendees={attendees} />
+        <AttendeeSection attendees={attendees} hasTicket={hasTicket} eventId={e.id} userId={user?.id} />
       </div>
 
       <div className="fixed bottom-[72px] left-1/2 -translate-x-1/2 w-full px-5 py-3 bg-[#111111]/90 backdrop-blur-sm" style={{ maxWidth: 430 }}>
