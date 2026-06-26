@@ -59,7 +59,7 @@ navigator.clipboard.writeText(url).catch(() => {})
 setShareCopied(true)
 setTimeout(() => setShareCopied(false), 2000)
 }
-}}
+}
 
 
 const refresh = useCallback(async () => {
