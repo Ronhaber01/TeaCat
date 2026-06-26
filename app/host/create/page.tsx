@@ -5,9 +5,11 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase-browser'
 import { useAuth } from '@/components/AuthProvider'
+import { CATEGORIES, GENRES } from '@/lib/types'
 
-const CATEGORIES = ['club', 'house', 'techno', 'rave', 'live', 'date', 'rooftop', 'bar', 'community', 'other']
-const NEIGHBORHOODS = ['Bushwick', 'Williamsburg', 'LES', 'East Village', 'Brooklyn', 'Manhattan', 'Queens', 'Bronx', 'Other']
+// Exclude 'all' and 'genres' meta-pills — only real event types
+const EVENT_CATEGORIES = CATEGORIES.filter(c => c.value !== 'all' && c.value !== 'genres')
+const NEIGHBORHOODS = ['Bushwick', 'Williamsburg', 'LES', 'East Village', 'Harlem', 'Hell\'s Kitchen', 'Chelsea', 'Brooklyn', 'Manhattan', 'Queens', 'Bronx', 'Other']
 
 export default function CreateEventPage() {
   const { user } = useAuth()
@@ -27,7 +29,7 @@ export default function CreateEventPage() {
     price_min: '',
     price_max: '',
     ticket_capacity: '',
-    vibe_tags: [] as string[],
+    genres: [] as string[],
     is_published: false,
   })
   const [flyerFile, setFlyerFile] = useState<File | null>(null)
@@ -38,10 +40,10 @@ export default function CreateEventPage() {
 
   const set = (key: string, val: unknown) => setForm((f) => ({ ...f, [key]: val }))
 
-  const toggleVibe = (v: string) => {
-    set('vibe_tags', form.vibe_tags.includes(v)
-      ? form.vibe_tags.filter((t) => t !== v)
-      : [...form.vibe_tags, v]
+  const toggleGenre = (g: string) => {
+    set('genres', form.genres.includes(g)
+      ? form.genres.filter((t) => t !== g)
+      : [...form.genres, g]
     )
   }
 
@@ -96,7 +98,7 @@ export default function CreateEventPage() {
         starts_at: new Date(form.starts_at).toISOString(),
         ends_at: form.ends_at ? new Date(form.ends_at).toISOString() : null,
         category: form.category || null,
-        vibe_tags: form.vibe_tags.length ? form.vibe_tags : null,
+        vibe_tags: form.genres.length ? form.genres : null,
         is_free: form.is_free,
         price_min: form.is_free ? 0 : parseInt(form.price_min || '0') * 100,
         price_max: form.is_free ? null : (form.price_max ? parseInt(form.price_max) * 100 : null),
@@ -142,7 +144,7 @@ export default function CreateEventPage() {
           <Step1 form={form} set={set} flyerPreview={flyerPreview} onFlyerChange={handleFlyerChange} onNext={() => setStep(2)} />
         )}
         {step === 2 && (
-          <Step2 form={form} set={set} toggleVibe={toggleVibe} onBack={() => setStep(1)} onNext={() => setStep(3)} />
+          <Step2 form={form} set={set} toggleGenre={toggleGenre} onBack={() => setStep(1)} onNext={() => setStep(3)} />
         )}
         {step === 3 && (
           <Step3
@@ -225,7 +227,7 @@ function Step1({ form, set, flyerPreview, onFlyerChange, onNext }: any) {
   )
 }
 
-function Step2({ form, set, toggleVibe, onBack, onNext }: any) {
+function Step2({ form, set, toggleGenre, onBack, onNext }: any) {
   return (
     <div className='flex flex-col gap-5'>
       <div>
@@ -239,25 +241,52 @@ function Step2({ form, set, toggleVibe, onBack, onNext }: any) {
       <div>
         <label className='text-gray-400 text-xs font-semibold uppercase tracking-wider mb-2 block'>Neighborhood</label>
         <div className='flex gap-2 flex-wrap'>
-          {['Bushwick', 'Williamsburg', 'LES', 'East Village', 'Brooklyn', 'Manhattan', 'Queens', 'Bronx', 'Other'].map((n) => (
+          {NEIGHBORHOODS.map((n) => (
             <button key={n} onClick={() => set('neighborhood', n)} className={`pill text-xs ${form.neighborhood === n ? 'pill-active' : 'pill-inactive'}`}>{n}</button>
           ))}
         </div>
       </div>
+
+      {/* Event Type */}
       <div>
-        <label className='text-gray-400 text-xs font-semibold uppercase tracking-wider mb-2 block'>Category</label>
+        <label className='text-gray-400 text-xs font-semibold uppercase tracking-wider mb-2 block'>Event Type</label>
         <div className='flex gap-2 flex-wrap'>
-          {['club', 'house', 'techno', 'rave', 'live', 'date', 'rooftop', 'bar', 'community', 'other'].map((c) => (
-            <button key={c} onClick={() => set('category', c)} className={`pill text-xs capitalize ${form.category === c ? 'pill-active' : 'pill-inactive'}`}>{c}</button>
+          {EVENT_CATEGORIES.map((c) => (
+            <button key={c.value} onClick={() => set('category', c.value)} className={`pill text-xs ${form.category === c.value ? 'pill-active' : 'pill-inactive'}`}>
+              {c.label}
+            </button>
           ))}
         </div>
       </div>
+
+      {/* Music Genres */}
       <div>
-        <label className='text-gray-400 text-xs font-semibold uppercase tracking-wider mb-2 block'>Vibe Tags</label>
-        {['dance', 'underground', 'on_fire', 'chill', 'late_night', 'live_music', 'drinks'].map((v) => (
-          <button key={v} onClick={() => toggleVibe(v)} className={`pill text-xs mr-2 mb-2 ${form.vibe_tags.includes(v) ? 'pill-active' : 'pill-inactive'}`}>#{v}</button>
-        ))}
+        <label className='text-gray-400 text-xs font-semibold uppercase tracking-wider mb-1 block'>Music Genres</label>
+        <p className='text-gray-700 text-xs mb-3'>Select all that apply — helps fans discover your event</p>
+        <div className='p-3 rounded-2xl border border-[#2A2A2A] bg-[#0D0D0D]'>
+          <div className='flex flex-wrap gap-2'>
+            {GENRES.map((g) => (
+              <button
+                key={g}
+                onClick={() => toggleGenre(g)}
+                className={`px-3 py-1.5 rounded-full text-xs font-bold transition-all ${
+                  form.genres.includes(g)
+                    ? 'bg-[#7B2EFF] text-[#A3FF12]'
+                    : 'bg-[#1A1A1A] text-gray-500 border border-[#2A2A2A]'
+                }`}
+              >
+                {g}
+              </button>
+            ))}
+          </div>
+          {form.genres.length > 0 && (
+            <p className='text-[#A3FF12] text-xs font-semibold mt-3'>
+              {form.genres.length} genre{form.genres.length > 1 ? 's' : ''} selected
+            </p>
+          )}
+        </div>
       </div>
+
       <div className='flex gap-3'>
         <button onClick={onBack} className='btn-secondary flex-1'>← Back</button>
         <button onClick={onNext} className='btn-primary flex-1'>Next →</button>
@@ -302,7 +331,15 @@ function Step3({ form, set, onBack, onSaveDraft, onPublish, loading, error }: an
         <p className='text-white font-bold'>{form.title || 'Untitled event'}</p>
         <p className='text-gray-400 text-sm'>{form.venue_name} · {form.neighborhood}</p>
         <p className='text-gray-500 text-xs mt-1'>{form.starts_at ? new Date(form.starts_at).toLocaleDateString() : 'No date'}</p>
-        <p className='text-[#A3FF12] font-bold text-sm mt-1'>
+        {form.genres.length > 0 && (
+          <div className='flex gap-1 flex-wrap mt-2'>
+            {form.genres.slice(0, 4).map((g: string) => (
+              <span key={g} className='text-[10px] bg-[#7B2EFF]/30 text-[#A3FF12] px-2 py-0.5 rounded-full'>{g}</span>
+            ))}
+            {form.genres.length > 4 && <span className='text-[10px] text-gray-600'>+{form.genres.length - 4} more</span>}
+          </div>
+        )}
+        <p className='text-[#A3FF12] font-bold text-sm mt-2'>
           {form.is_free ? 'Free' : form.price_min ? `From $${form.price_min}` : 'Price TBD'}
         </p>
       </div>
