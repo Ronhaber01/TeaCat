@@ -25,6 +25,8 @@ const [saved, setSaved] = useState<SavedEvent[]>([])
 const [hostedEvents, setHostedEvents] = useState<Event[]>([])
 const [loading, setLoading] = useState(true)
 const [copied, setCopied] = useState(false)
+const [notifyOn, setNotifyOn] = useState(false)
+const [notifyToast, setNotifyToast] = useState(false)
 const [publicUsername, setPublicUsername] = useState<string | null>(null)
 const [avatarPreview, setAvatarPreview] = useState<string | null>(null)
 const [uploading, setUploading] = useState(false)
@@ -140,6 +142,16 @@ setUploading(false)
 }
 }
 
+const handleNotify = () => {
+const next = !notifyOn
+setNotifyOn(next)
+setNotifyToast(true)
+setTimeout(() => setNotifyToast(false), 2000)
+if (next && typeof Notification !== 'undefined' && Notification.permission === 'default') {
+Notification.requestPermission()
+}
+}
+
 const handleSignOut = async () => {
 await signOut()
 router.push('/')
@@ -235,6 +247,18 @@ return (
 <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
 </svg>
 </a>
+<button
+onClick={handleNotify}
+className="w-9 h-9 rounded-full bg-[#1A1A1A] border border-[#2A2A2A] flex items-center justify-center active:scale-90 transition-transform relative"
+>
+{notifyToast && (
+<span className="absolute -top-6 right-0 whitespace-nowrap text-[#A3FF12] text-[9px] font-bold pointer-events-none">{notifyOn ? 'Notifs on!' : 'Off'}</span>
+)}
+<svg width="14" height="14" viewBox="0 0 24 24" fill={notifyOn ? '#A3FF12' : 'none'} stroke="#A3FF12" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+<path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+<path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+</svg>
+</button>
 </div>
 </div>
 
