@@ -149,7 +149,6 @@ if (typeof Notification !== 'undefined' && Notification.permission === 'default'
 Notification.requestPermission()
 }
 }
-}
 
 return (
 <div className="min-h-screen bg-[#111111] pb-28">
