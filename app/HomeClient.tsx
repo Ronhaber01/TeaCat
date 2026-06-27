@@ -195,7 +195,7 @@ className="w-9 h-9 rounded-full bg-[#1A1A1A] border border-[#2A2A2A] flex items-
 </div>
 </div>
 
-<div className="px-5 mb-1">
+<div className="mb-1">
 <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
 {CATEGORIES.map((cat) => {
 const isActive = activeCategory === cat.value || (cat.value === 'all' && activeCategory === 'all')
@@ -230,7 +230,7 @@ style={{ transform: showGenres ? 'rotate(180deg)' : 'rotate(0deg)', transition: 
 </div>
 
 {showGenres && (
-<div className="px-5 mb-4">
+<div className="mb-4">
 <div className="mt-2 p-3 rounded-2xl border border-[#2A2A2A] bg-[#0D0D0D]">
 <p className="text-gray-600 text-[10px] font-semibold uppercase tracking-wider mb-2">Select a genre</p>
 <div className="flex flex-wrap gap-2">
@@ -252,7 +252,7 @@ activeGenre === genre
 </div>
 )}
 
-<div className="px-5">
+<div>
 {filtered.length === 0 ? (
 <div className="text-center py-16">
 <svg className="mx-auto mb-3" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#A3FF12" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
