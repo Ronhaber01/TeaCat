@@ -451,6 +451,13 @@ className="w-full border border-[#2A2A2A] rounded-2xl py-4 text-gray-600 text-sm
 >
 Sign out
 </button>
+<p className="text-gray-600 text-xs text-center mt-6">
+<a href="/legal/terms" className="hover:text-gray-400 transition-colors">Terms</a>
+{' · '}
+<a href="/legal/privacy" className="hover:text-gray-400 transition-colors">Privacy</a>
+{' · '}
+<a href="/legal/refund" className="hover:text-gray-400 transition-colors">Refunds</a>
+</p>
 </div>
 
 {showCameraSheet && (

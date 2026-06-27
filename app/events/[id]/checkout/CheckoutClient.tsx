@@ -156,6 +156,12 @@ function StripeForm({ event, userId }: { event: Event; userId: string }) {
       <p className="text-gray-700 text-xs text-center">
         Secured by Stripe · No platform fee
       </p>
+      <p className="text-gray-600 text-xs text-center">
+        By purchasing you agree to our{' '}
+        <a href="/legal/terms" className="text-gray-500 hover:text-gray-300 transition-colors">Terms</a>
+        {' '}and{' '}
+        <a href="/legal/refund" className="text-gray-500 hover:text-gray-300 transition-colors">Refund Policy</a>
+      </p>
     </form>
   )
 }
@@ -186,6 +192,12 @@ function FreeTicketButton({ eventId, eventTitle }: { eventId: string; eventTitle
         {loading ? 'Claiming...' : 'Claim free ticket →'}
       </button>
       <p className="text-gray-700 text-xs text-center">No payment needed · Show QR at door</p>
+      <p className="text-gray-600 text-xs text-center">
+        By claiming you agree to our{' '}
+        <a href="/legal/terms" className="text-gray-500 hover:text-gray-300 transition-colors">Terms</a>
+        {' '}and{' '}
+        <a href="/legal/refund" className="text-gray-500 hover:text-gray-300 transition-colors">Refund Policy</a>
+      </p>
     </div>
   )
 }

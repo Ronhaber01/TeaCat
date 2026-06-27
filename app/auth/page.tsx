@@ -53,7 +53,14 @@ function AuthContent() {
         </button>
       </form>
       <p className="text-gray-700 text-xs text-center mt-8 leading-relaxed">
-        By continuing you agree to our terms. No spam, ever.
+        No spam, ever.
+      </p>
+      <p className="text-gray-600 text-xs text-center mt-4">
+        <Link href="/legal/terms" className="hover:text-gray-400 transition-colors">Terms</Link>
+        {' · '}
+        <Link href="/legal/privacy" className="hover:text-gray-400 transition-colors">Privacy</Link>
+        {' · '}
+        <Link href="/legal/refund" className="hover:text-gray-400 transition-colors">Refunds</Link>
       </p>
     </div>
   )
