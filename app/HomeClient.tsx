@@ -89,6 +89,10 @@ export default function HomeClient({ events: initialEvents }: Props) {
 const router = useRouter()
 const { user } = useAuth()
 const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
+const [bellActive, setBellActive] = useState(false)
+const [bellToast, setBellToast] = useState(false)
+const [bellActive, setBellActive] = useState(false)
+const [bellToast, setBellToast] = useState(false)
 useEffect(() => {
 if (!user) return
 const supabase = createClient()
@@ -139,6 +143,25 @@ await new Promise<void>(r => setTimeout(r, 1000))
 
 const ptr = usePullToRefresh(refresh)
 
+const handleBell = () => {
+setBellActive(a => !a)
+setBellToast(true)
+setTimeout(() => setBellToast(false), 2000)
+if (typeof Notification !== 'undefined' && Notification.permission === 'default') {
+Notification.requestPermission()
+}
+}
+
+const handleBell = () => {
+const next = !bellActive
+setBellActive(next)
+setBellToast(true)
+setTimeout(() => setBellToast(false), 2000)
+if (next && typeof Notification !== 'undefined' && Notification.permission === 'default') {
+Notification.requestPermission()
+}
+}
+
 return (
 <div className="min-h-screen bg-[#111111] pb-28">
 <PullIndicator {...ptr} />
@@ -150,6 +173,34 @@ return (
 <h1 className="text-white font-black text-2xl leading-tight">What's happening</h1>
 <p className="text-gray-500 text-sm">New York City</p>
 </div>
+<div className="flex items-center gap-2 flex-shrink-0">
+{bellToast && (
+<span className="text-[#A3FF12] text-[10px] font-bold absolute right-14 top-5 pointer-events-none">
+{bellActive ? 'Notifs on!' : 'Notifs off'}
+</span>
+)}
+<button
+onClick={handleBell}
+className="w-9 h-9 rounded-full bg-[#1A1A1A] border border-[#2A2A2A] flex items-center justify-center active:scale-90 transition-transform flex-shrink-0"
+>
+<svg width="16" height="16" viewBox="0 0 24 24" fill={bellActive ? '#A3FF12' : 'none'} stroke="#A3FF12" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+<path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+<path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+</svg>
+</button>
+<div className="flex items-center gap-2 flex-shrink-0 relative">
+{bellToast && (
+<span className="absolute -top-5 right-0 text-[#A3FF12] text-[9px] font-bold whitespace-nowrap pointer-events-none">{bellActive ? 'Notifs on!' : 'Off'}</span>
+)}
+<button
+onClick={handleBell}
+className="w-9 h-9 rounded-full bg-[#1A1A1A] border border-[#2A2A2A] flex items-center justify-center active:scale-90 transition-transform flex-shrink-0"
+>
+<svg width="16" height="16" viewBox="0 0 24 24" fill={bellActive ? '#A3FF12' : 'none'} stroke="#A3FF12" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+<path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+<path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+</svg>
+</button>
 <Link href="/profile" className="w-9 h-9 rounded-full overflow-hidden bg-gradient-to-br from-[#7B2EFF] to-[#A3FF12] flex items-center justify-center flex-shrink-0">
 {avatarUrl ? (
 <img src={avatarUrl} alt="Profile" className="w-full h-full object-cover" />
@@ -160,6 +211,8 @@ return (
 </svg>
 )}
 </Link>
+</div>
+</div>
 </div>
 </div>
 
