@@ -1,6 +1,23 @@
 'use client'
 
-import Link from 'next/link'
+impor
+useEffect(() => {
+if (!scrollRef.current) return
+const cards = scrollRef.current.querySelectorAll('[data-card-idx]')
+const observer = new IntersectionObserver(
+(entries) => {
+entries.forEach(entry => {
+if (entry.isIntersecting) {
+setCurrentEventIdx(Number(entry.target.getAttribute('data-card-idx')))
+}
+})
+},
+{ root: scrollRef.current, threshold: 0.5 }
+)
+cards.forEach((card: Element) => observer.observe(card))
+return () => observer.disconnect()
+}, [events])
+t Link from 'next/link'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import BottomNav from '@/components/BottomNav'
@@ -122,13 +139,14 @@ ref={scrollRef}
 onScroll={(e) => { const el = e.currentTarget; setCurrentEventIdx(Math.round(el.scrollTop / Math.max(1, el.clientHeight))) }}
 style={{ height: '100svh', overflowY: 'scroll', scrollSnapType: 'y mandatory' }}
 >
-{events.map((event) => {
+{events.map((event, cardIdx) => {
 const price = getPrice(event)
 const isOpen = openDrawerId === event.id
 
 return (
 <div
 key={event.id}
+data-card-idx={cardIdx}
 className="relative flex-shrink-0"
 style={{ height: '100svh', scrollSnapAlign: 'start' }}
 >
@@ -209,26 +227,6 @@ onClick={(e) => { if (soldOut) e.preventDefault() }}
 {soldOut ? 'Sold Out' : 'Get Tickets'}
 </Link>
 
-<button
-className="w-full flex items-center justify-center gap-2 rounded-2xl font-semibold"
-style={{ height: 48, flexShrink: 0, border: '1px solid rgba(255,255,255,0.12)', color: '#9CA3AF', background: 'transparent' }}
-onClick={() => {
-if (typeof navigator !== 'undefined' && navigator.share) {
-navigator.share({ title: ev.title, url: url }).catch(() => {})
-} else {
-navigator.clipboard.writeText(url).catch(() => {})
-}
-}}
->
-<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-<circle cx="18" cy="5" r="3"/>
-<circle cx="6" cy="12" r="3"/>
-<circle cx="18" cy="19" r="3"/>
-<line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
-<line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
-</svg>
-Share
-</button>
 </div>
 </div>
 )
