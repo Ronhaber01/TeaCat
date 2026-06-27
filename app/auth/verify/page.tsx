@@ -9,7 +9,7 @@ import OnboardingFlow from '@/components/OnboardingFlow'
 import { identifyUser } from '@/lib/onesignal'
 
 function VerifyContent() {
-  const [code, setCode] = useState(['', '', '', '', '', ''])
+  const [code, setCode] = useState(['', '', '', '', '', '', '', ''])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [resent, setResent] = useState(false)
@@ -23,10 +23,10 @@ function VerifyContent() {
   useEffect(() => { inputRefs.current[0]?.focus() }, [])
 
   const handleChange = (index: number, val: string) => {
-    if (val.length === 6 && /^\d{6}$/.test(val)) {
+    if (val.length === 8 && /^\d{8}$/.test(val)) {
       const digits = val.split('')
       setCode(digits)
-      inputRefs.current[5]?.focus()
+      inputRefs.current[7]?.focus()
       verifyCode(val)
       return
     }
@@ -34,7 +34,7 @@ function VerifyContent() {
     const next = [...code]
     next[index] = digit
     setCode(next)
-    if (digit && index < 5) inputRefs.current[index + 1]?.focus()
+    if (digit && index < 7) inputRefs.current[index + 1]?.focus()
     if (next.every((d) => d !== '')) verifyCode(next.join(''))
   }
 
@@ -50,7 +50,7 @@ function VerifyContent() {
     setLoading(false)
     if (error) {
       setError('Wrong code. Try again.')
-      setCode(['', '', '', '', '', ''])
+      setCode(['', '', '', '', '', '', '', ''])
       inputRefs.current[0]?.focus()
       return
     }
@@ -88,16 +88,16 @@ function VerifyContent() {
       </Link>
       <h1 className="text-white font-black text-3xl mb-2">Check your email</h1>
       <p className="text-gray-500 text-sm mb-10">
-        We sent a 6-digit code to <span className="text-white font-semibold">{email}</span>
+        We sent a 8-digit code to <span className="text-white font-semibold">{email}</span>
       </p>
-      <div className="flex gap-3 justify-between mb-6">
+      <div className="flex gap-1.5 justify-between mb-6">
         {code.map((digit, i) => (
           <input key={i} ref={(el) => { inputRefs.current[i] = el }}
             type="text" inputMode="numeric" maxLength={6} value={digit}
             onChange={(e) => handleChange(i, e.target.value)}
             onKeyDown={(e) => handleKeyDown(i, e)}
             autoComplete="one-time-code"
-            className={`w-12 h-14 text-center text-2xl font-black rounded-2xl border bg-[#1A1A1A] text-white focus:outline-none transition-all ${digit ? 'border-[#7B2EFF]' : 'border-[#2A2A2A]'} ${loading ? 'opacity-50' : ''}`}
+            className={`w-9 h-12 text-center text-xl font-black rounded-xl border bg-[#1A1A1A] text-white focus:outline-none transition-all ${digit ? 'border-[#7B2EFF]' : 'border-[#2A2A2A]'} ${loading ? 'opacity-50' : ''}`}
             disabled={loading} />
         ))}
       </div>
