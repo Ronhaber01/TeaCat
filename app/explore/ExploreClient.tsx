@@ -29,6 +29,9 @@ const router = useRouter()
 const [openDrawerId, setOpenDrawerId] = useState<string | null>(null)
 const [drawerEvent, setDrawerEvent] = useState<Event | null>(null)
 const [shareCopied, setShareCopied] = useState(false)
+const [currentEventIdx, setCurrentEventIdx] = useState(0)
+const [savedEvents, setSavedEvents] = useState<Set<string>>(new Set())
+const [saveToast, setSaveToast] = useState<string | null>(null)
 const scrollRef = useRef<HTMLDivElement>(null)
 
 useEffect(() => {
@@ -80,6 +83,25 @@ setTimeout(() => setShareCopied(false), 2000)
 }
 
 
+const handleSaveEvent = (eventId: string, e: React.MouseEvent) => {
+e.stopPropagation()
+setSavedEvents(prev => {
+const next = new Set(prev)
+if (next.has(eventId)) {
+next.delete(eventId)
+setSaveToast('Removed')
+} else {
+next.add(eventId)
+setSaveToast("We'll keep you posted")
+if (typeof Notification !== 'undefined' && Notification.permission === 'default') {
+Notification.requestPermission()
+}
+}
+return next
+})
+setTimeout(() => setSaveToast(null), 2000)
+}
+
 const refresh = useCallback(async () => {
 router.refresh()
 await new Promise<void>(r => setTimeout(r, 1000))
@@ -121,19 +143,20 @@ style={{ background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(8px)' }}
 </svg>
 )}
 </button>
-<button
-onClick={handleShareCurrent}
-className="fixed top-14 right-4 z-10 w-10 h-10 rounded-full flex items-center justify-center active:scale-90 transition-transform"
-style={{ background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(8px)' }}
->
-{shareCopied ? (
-<span className="text-[#A3FF12] text-[9px] font-bold">Copied!</span>
-) : (
-<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#A3FF12" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-<circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
-<line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
-</svg>
+{saveToast && (
+<div className="fixed pointer-events-none" style={{ top: 60, left: 16, zIndex: 11, background: 'rgba(0,0,0,0.75)', backdropFilter: 'blur(8px)', borderRadius: 20, padding: '4px 10px' }}>
+<span className="text-white text-[10px] font-semibold">{saveToast}</span>
+</div>
 )}
+<button
+onClick={(e) => { e.stopPropagation(); if (events[currentEventIdx]) handleSaveEvent(events[currentEventIdx].id, e) }}
+className="fixed z-10 w-10 h-10 rounded-full flex items-center justify-center active:scale-90 transition-transform"
+style={{ top: 56, left: 16, background: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(8px)' }}
+>
+<svg width="16" height="16" viewBox="0 0 24 24" fill={savedEvents.has(events[currentEventIdx]?.id || '') ? '#A3FF12' : 'none'} stroke="#A3FF12" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+<path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+<path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+</svg>
 </button>
 <div
 ref={scrollRef}
