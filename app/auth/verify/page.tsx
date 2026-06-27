@@ -96,6 +96,7 @@ function VerifyContent() {
             type="text" inputMode="numeric" maxLength={6} value={digit}
             onChange={(e) => handleChange(i, e.target.value)}
             onKeyDown={(e) => handleKeyDown(i, e)}
+            autoComplete="one-time-code"
             className={`w-12 h-14 text-center text-2xl font-black rounded-2xl border bg-[#1A1A1A] text-white focus:outline-none transition-all ${digit ? 'border-[#7B2EFF]' : 'border-[#2A2A2A]'} ${loading ? 'opacity-50' : ''}`}
             disabled={loading} />
         ))}
