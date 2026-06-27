@@ -4,8 +4,6 @@ import { Suspense } from 'react'
 import { useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import { createClient } from '@/lib/supabase-browser'
-
 function AuthContent() {
   const [email, setEmail] = useState('')
   const [loading, setLoading] = useState(false)
@@ -19,13 +17,15 @@ function AuthContent() {
     if (!email.trim()) return
     setLoading(true)
     setError('')
-    const supabase = createClient()
-    const { error } = await supabase.auth.signInWithOtp({
-      email: email.trim().toLowerCase(),
-      options: { shouldCreateUser: true },
+    // Call server-side OTP endpoint (rate-limited) instead of Supabase directly
+    const res = await fetch('/api/auth/send-otp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email: email.trim().toLowerCase() }),
     })
+    const data = await res.json()
     setLoading(false)
-    if (error) { setError(error.message); return }
+    if (!res.ok) { setError(data.error || 'Something went wrong'); return }
     router.push(`/auth/verify?email=${encodeURIComponent(email)}&redirect=${encodeURIComponent(redirect)}`)
   }
 

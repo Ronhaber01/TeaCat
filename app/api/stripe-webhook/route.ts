@@ -22,8 +22,9 @@ export async function POST(req: Request) {
     const pi = event.data.object as Stripe.PaymentIntent
     const { eventId, tier, userId } = pi.metadata
     if (!eventId) return NextResponse.json({ received: true })
+    // Idempotency: skip if ticket already exists for this payment intent
     const { data: existing } = await supabase
-      .from('tickets').select('id').eq('stripe_payment_id', pi.id).single()
+      .from('tickets').select('id').eq('stripe_payment_id', pi.id).maybeSingle()
     if (existing) return NextResponse.json({ received: true })
     const ticketCode = crypto.randomUUID().replace(/-/g, '').substring(0, 12).toLowerCase()
     const { error: insertError } = await supabase.from('tickets').insert({

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import Stripe from 'stripe'
 import { createClient } from '@/lib/supabase-server'
+import { rateLimits } from '@/lib/rate-limit'
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: '2024-04-10',
@@ -16,8 +17,16 @@ export async function POST(req: Request) {
 
     const supabase = createClient()
 
-    // Get current user – needed to embed userId in payment metadata
+    // Auth guard
     const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    // Rate limit: 5 purchase attempts per user per minute
+    if (!rateLimits.purchase(user.id)) {
+      return NextResponse.json({ error: 'Too many requests. Please slow down.' }, { status: 429 })
+    }
 
     // Fetch event from Supabase
     const { data: event, error } = await supabase
@@ -50,7 +59,7 @@ export async function POST(req: Request) {
         eventId: event.id,
         eventTitle: event.title,
         tier,
-        userId: user?.id ?? '',
+        userId: user.id,
       },
     })
 
