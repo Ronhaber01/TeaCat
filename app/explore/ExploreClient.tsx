@@ -1,23 +1,6 @@
 'use client'
 
-impor
-useEffect(() => {
-if (!scrollRef.current) return
-const cards = scrollRef.current.querySelectorAll('[data-card-idx]')
-const observer = new IntersectionObserver(
-(entries) => {
-entries.forEach(entry => {
-if (entry.isIntersecting) {
-setCurrentEventIdx(Number(entry.target.getAttribute('data-card-idx')))
-}
-})
-},
-{ root: scrollRef.current, threshold: 0.5 }
-)
-cards.forEach((card: Element) => observer.observe(card))
-return () => observer.disconnect()
-}, [events])
-t Link from 'next/link'
+import Link from 'next/link'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import BottomNav from '@/components/BottomNav'
@@ -54,6 +37,24 @@ const e = events.find(ev => ev.id === openDrawerId)
 if (e) setDrawerEvent(e)
 }
 }, [openDrawerId, events])
+
+useEffect(() => {
+  if (!scrollRef.current) return
+  const cards = scrollRef.current.querySelectorAll('[data-card-idx]')
+  const observer = new IntersectionObserver(
+    (entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          setCurrentEventIdx(Number(entry.target.getAttribute('data-card-idx')))
+        }
+      })
+    },
+    { root: scrollRef.current, threshold: 0.5 }
+  )
+  cards.forEach((card: Element) => observer.observe(card))
+  return () => observer.disconnect()
+}, [events])
+
 
 useEffect(() => {
 const el = scrollRef.current
