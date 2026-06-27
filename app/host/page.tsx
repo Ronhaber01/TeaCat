@@ -36,6 +36,10 @@ return (
 <div className="min-h-screen bg-[#111111] pb-28">
 {/* Header */}
 <div className="px-5 pt-14 pb-6">
+<Link href="/" className="inline-flex items-center gap-1 text-gray-400 text-sm mb-4 active:opacity-60">
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+Home
+</Link>
 <div className="flex items-center justify-between mb-2">
 <div>
 <p className="text-gray-500 text-sm">Host dashboard</p>
@@ -64,7 +68,7 @@ return (
 <p className="text-gray-400 text-xs mt-0.5">Spend $20 \u00B7 Get $15 back in credits</p>
 </div>
 <Link href="/host/boost" className="bg-[#7B2EFF] text-white text-xs font-bold px-4 py-2.5 rounded-xl flex-shrink-0 active:scale-95 transition-transform">
-Boost \u2192
+Boost
 </Link>
 </div>
 </div>
@@ -180,7 +184,7 @@ return (
 List events, keep 100% of ticket revenue, and reach NYC&apos;s nightlife community. Boost to get $15 back for every $20 spent.
 </p>
 <Link href="/host/setup" className="btn-primary block text-center">
-Set up host profile \u2192
+Set up host profile
 </Link>
 <BottomNav />
 </div>
