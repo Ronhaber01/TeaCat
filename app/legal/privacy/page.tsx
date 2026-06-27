@@ -1,16 +1,11 @@
-import Link from 'next/link'
+import LegalBackButton from '@/components/LegalBackButton'
 import BottomNav from '@/components/BottomNav'
 
 export default function PrivacyPage() {
   return (
     <div className='min-h-screen bg-[#111111] pb-28'>
       <div className='px-5 pt-14 pb-10 max-w-xl mx-auto'>
-        <Link href='/' className='flex items-center gap-2 text-gray-500 text-sm mb-6'>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
-            <path d="M15 19l-7-7 7-7"/>
-          </svg>
-          Back
-        </Link>
+        <LegalBackButton />
 
         <h1 className='text-white font-black text-3xl mb-1'>Privacy Policy</h1>
         <p className='text-gray-500 text-sm mb-8'>Last updated: July 1, 2026</p>
