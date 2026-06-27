@@ -157,7 +157,7 @@ export default function ScanPage() {
             </>
           ) : (
             <>
-              <div className='text-9xl'>{result?.valid ? '\u2705' : '\u274C'}</div>
+              <div className='text-9xl'>{result?.valid ? 'Valid' : 'Invalid'}</div>
               <p className='text-white text-5xl font-black text-center leading-tight'>{result?.reason}</p>
               {result?.eventName && (
                 <p className='text-white/80 text-2xl text-center'>{result.eventName}</p>
@@ -175,7 +175,7 @@ export default function ScanPage() {
         <>
           <div className='absolute top-0 left-0 right-0 z-10 px-5 pt-14 pb-6 flex items-center justify-between bg-gradient-to-b from-black to-transparent'>
             <div>
-              <h1 className='text-white font-black text-xl'>\uD83C\uDFAB Door Scanner</h1>
+              <h1 className='text-white font-black text-xl'>Door Scanner</h1>
               <p className='text-gray-400 text-sm'>{scanCount} admitted tonight</p>
             </div>
             <button onClick={() => router.push('/host')} className='text-gray-300 text-sm font-semibold py-2 px-4 bg-white/10 rounded-full active:scale-95 transition-transform'>
