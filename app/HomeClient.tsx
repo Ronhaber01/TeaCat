@@ -195,7 +195,6 @@ className="w-9 h-9 rounded-full bg-[#1A1A1A] border border-[#2A2A2A] flex items-
 </div>
 </div>
 </div>
-</div>
 
 <div className="px-5 mb-1">
 <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
