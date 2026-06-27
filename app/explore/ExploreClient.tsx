@@ -241,7 +241,7 @@ return (
 )}
 {soldOut && <p className="text-red-400 text-xs font-semibold">Sold out</p>}
 
-<div className="mt-auto flex flex-col gap-3 pt-3">
+<div className="mt-auto flex flex-col gap-3 pt-3 pb-24">
 <Link
 href={soldOut ? '#' : '/events/' + ev.id + '/checkout'}
 className="w-full flex items-center justify-center rounded-2xl font-bold text-white"
