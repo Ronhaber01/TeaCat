@@ -64,7 +64,7 @@ Home
 <div className="mx-5 mb-6 p-4 rounded-2xl bg-gradient-to-r from-[#7B2EFF]/20 to-[#A3FF12]/10 border border-[#7B2EFF]/30">
 <div className="flex items-center justify-between">
 <div>
-<p className="text-white font-bold text-sm">Boost your next event \uD83D\uDE80</p>
+<p className="text-white font-bold text-sm">Boost your next event</p>
 <p className="text-gray-400 text-xs mt-0.5">Spend $20 \u00B7 Get $15 back in credits</p>
 </div>
 <Link href="/host/boost" className="bg-[#7B2EFF] text-white text-xs font-bold px-4 py-2.5 rounded-xl flex-shrink-0 active:scale-95 transition-transform">
