@@ -19,7 +19,11 @@ function BoostContent() {
         </svg>
       </Link>
 
-      <div className="text-5xl mb-6">🚀</div>
+      <div className="mb-6 w-14 h-14 rounded-2xl bg-[#7B2EFF]/10 border border-[#7B2EFF]/30 flex items-center justify-center">
+  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#7B2EFF" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round">
+    <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/>
+  </svg>
+</div>
       <h1 className="text-white font-black text-3xl mb-2">Event Boost</h1>
       <p className="text-gray-400 text-sm mb-8 leading-relaxed">
         Boost your event to the top of the feed and reach more people in NYC. Spend $20 and get $15 back in credits toward your next boost.
